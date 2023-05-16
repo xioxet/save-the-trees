@@ -1,0 +1,17 @@
+.center {
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+}
+
+.banner {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+h1 {
+    font-weight: bold;
+    color: #429048;
+}

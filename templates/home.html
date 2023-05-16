@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="center">
+        <h1>999 999 trees donated!<br>Will you be the millionth?</h1><br><br>
+        <button type="button" class="btn btn-success" style="font-size:25px;">Log in and donate</button>
+    </div>
+    <img class="banner" src="{{url_for('static', filename='images/banner.jpg')}}" alt="banner image">
+{% endblock %}
