@@ -51,6 +51,13 @@ def add_stock(prod_id, stock):
 
     pass
 
+def update_field(prod_id, field, value):
+    products = search_product(prod_id, fields="prod_id")
+    if len(products) > 0:
+        update_query = "UPDATE products SET %s = %s WHERE prod_id = %s"
+        for product in products:
+            mycursor.execute(update_query, (field, value, product[0]))
+    pass
 
 if __name__ == "__main__":
     mycursor.execute('select * from users')
