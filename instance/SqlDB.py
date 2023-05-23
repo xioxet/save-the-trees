@@ -49,7 +49,6 @@ def add_stock(prod_id, stock):
         print("Product does not exist")
         return False
 
-    pass
 
 def update_field(prod_id, field, value):
     products = search_product(prod_id, fields="prod_id")
@@ -58,6 +57,15 @@ def update_field(prod_id, field, value):
         for product in products:
             mycursor.execute(update_query, (field, value, product[0]))
     pass
+
+
+def delete_product(prod_id):
+    products = search_product(prod_id, fields="prod_id")
+    if len(products) > 0:
+        delete_query = "DELETE FROM products WHERE prod_id = %s"
+        for product in products:
+            mycursor.execute(delete_query, (product[0],))
+
 
 if __name__ == "__main__":
     mycursor.execute('select * from users')
