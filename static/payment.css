@@ -1,0 +1,39 @@
+.payment-form-1 {
+    max-width: 30%;
+    min-width: 300px;
+    margin: auto;
+    padding: 30px;
+    background-color: white;
+    border-radius:5px;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+}
+
+h1 {
+    margin: auto;
+    text-align: center;
+    color: forestgreen;
+    margin-bottom:20px;
+}
+
+#payment_submit {
+    margin-top:5px;
+    background-color:forestgreen;
+    color:white;
+    padding-block:5px;
+    padding-inline:20px;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 350ms, color 350ms;
+}
+
+#payment_submit:hover {
+    background-color:gray;
+}
+
+label {
+    transition: color 0.3s;
+}
+
+label:hover {
+    color: blue;    
+}
