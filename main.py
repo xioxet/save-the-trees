@@ -57,6 +57,66 @@ def payment_2():
 
     return render_template("payment_step2.html", form=form)
 
+#dominic part
+class LoginForm(FlaskForm):
+    username = StringField('Username', [validators.DataRequired()])
+    password = StringField('Password',[validators.Length(max=100), validators.DataRequired()], widget=PasswordField())
+    checkbox = BooleanField("Remember Me")
+
+class RegisterForm(FlaskForm):
+    username = StringField('Username', [validators.DataRequired()])
+    password = StringField('Password',[validators.Length(max=100), validators.DataRequired()], widget=PasswordField())
+    email = StringField('Email', [validators.DataRequired()])
+    checkbox = BooleanField("Remember Me")
+
+class User:
+    def __init__(self, username, password, email):
+        self.username = username
+        self.password = password
+        self.email = email
+
+    def get_id(self):
+        return self.username
+
+
+users = {}  # Placeholder for user data (in-memory storage)
+
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(username):
+    return users.get(username)
+
+
+@app.route('/Login', methods=['GET', 'POST'])
+def login():
+    create_login_form = LoginForm()
+    if request.method == 'POST' and create_login_form.validate():
+        username = request.form['username']
+        if username in users and request.form['password'] == users[username]:
+            return 'Login successful!'
+        else:
+            return 'Login failed. Please check your username and password.'
+    return render_template('login.html')
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        if username in users:
+            return 'Username already exists. Please choose a different username.'
+        else:
+            users[username] = password
+            return 'Sign up successful! Please proceed to login.'
+    return render_template('signup.html')
+
+
 if __name__ == '__main__':
     app.run()
 
