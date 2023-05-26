@@ -1,4 +1,4 @@
-from base import mydb, mycursor
+from instance import mydb, mycursor
 
 users = mycursor.fetchall()
 

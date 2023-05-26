@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, BooleanField, SubmitField, IntegerField
-from wtforms.validators import DataRequired, Email, NumberRange
+from wtforms.validators import DataRequired, Email, NumberRange, Length
 
 # classes by v.
 class PaymentForm_1(FlaskForm):
@@ -12,7 +12,7 @@ class PaymentForm_1(FlaskForm):
     payment_submit = SubmitField('Next')
 
 class PaymentForm_2(FlaskForm):
-    payment_cc_no = IntegerField('Credit Card Number', validators=[DataRequired(), NumberRange(min=1000000000000000, max=9999999999999999)])
+    payment_cc_no = StringField('Credit Card Number', validators=[DataRequired(), Length(min=16, max=16)])
     payment_expiration_month = IntegerField('Expiration Month', validators=[DataRequired(), NumberRange(min=1, max=12)])
     payment_expiration_year = IntegerField('Expiration Year', validators=[DataRequired(), NumberRange(min=2023, max=2050)])
     payment_cvv = IntegerField('CVV', validators=[DataRequired(), NumberRange(min=100,max=999)])

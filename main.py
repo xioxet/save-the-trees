@@ -7,6 +7,9 @@ from contact import *
 from login import *
 #
 
+#
+from instance.contact import *
+#
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -43,13 +46,22 @@ def payment_2():
 
 
 @app.route('/contact', methods=['GET', 'POST'])
-def contact():
+def contact_form():
     form = ContactForm()
     if form.validate_on_submit():
-        print('done')
-        return redirect('/')
-    return render_template("contact.html", form=form)
+        add_contact(
+            request.form["contact_email"],
+            request.form["contact_fname"],
+            request.form["contact_lname"],
+            request.form["contact_category"],
+            request.form["contact_message"]
+        )
+    return render_template("contact_form.html", form=form)
 
+@app.route('/contact_view')
+def contact_view():
+    data = get_contact()
+    return render_template('contact_view.html', data=data)
 
 #dominic part
 

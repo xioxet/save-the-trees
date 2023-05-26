@@ -1,4 +1,4 @@
-from base import mydb, mycursor
+from instance import mydb, mycursor
 
 def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
     insert_product = ("INSERT INTO products "

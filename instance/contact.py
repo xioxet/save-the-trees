@@ -1,4 +1,4 @@
-from base import mydb, mycursor
+from instance import mydb, mycursor
 
 # by v.
 
@@ -10,3 +10,10 @@ def add_contact(contact_email, contact_fname, contact_lname, contact_category, c
     mycursor.execute(insert_contact, contact_params)
     mydb.commit()
     return True
+
+def get_contact():
+    mycursor.execute("SELECT * FROM contact")
+    data = [row for row in mycursor]
+    return data
+
+print(get_contact())
