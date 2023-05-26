@@ -7,6 +7,9 @@ from wtforms.validators import DataRequired, Email, NumberRange
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
 
+
+# classes by v.
+
 class PaymentForm_1(FlaskForm):
     payment_email = StringField('Email', validators=[DataRequired(), Email()])
     payment_fname = StringField('First Name', validators=[DataRequired()])
@@ -32,6 +35,8 @@ def main():
 def login():
     return render_template("login.html")
 
+
+# payment functions by v.
 @app.route('/payment_1', methods=['GET', 'POST'])
 def payment_1():
     form = PaymentForm_1()
