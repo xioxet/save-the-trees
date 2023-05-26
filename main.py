@@ -1,11 +1,15 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, BooleanField, SubmitField, IntegerField
+from wtforms import StringField, TextAreaField, BooleanField, SubmitField, IntegerField, PasswordField
 from wtforms.validators import DataRequired, Email, NumberRange
-
+from flask_login import LoginManager, login_user
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# classes by v.
 
 class PaymentForm_1(FlaskForm):
     payment_email = StringField('Email', validators=[DataRequired(), Email()])
@@ -28,10 +32,8 @@ class PaymentForm_2(FlaskForm):
 def main():
     return render_template("home.html")
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    return render_template("login.html")
 
+# payment functions by v.
 @app.route('/payment_1', methods=['GET', 'POST'])
 def payment_1():
     form = PaymentForm_1()
@@ -59,14 +61,16 @@ def payment_2():
 
 #dominic part
 class LoginForm(FlaskForm):
-    username = StringField('Username', [validators.DataRequired()])
-    password = StringField('Password',[validators.Length(max=100), validators.DataRequired()], widget=PasswordField())
+    username = StringField('Username', validators=[DataRequired()])
+    password = StringField('Password', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField("Login")
     checkbox = BooleanField("Remember Me")
 
 class RegisterForm(FlaskForm):
-    username = StringField('Username', [validators.DataRequired()])
-    password = StringField('Password',[validators.Length(max=100), validators.DataRequired()], widget=PasswordField())
-    email = StringField('Email', [validators.DataRequired()])
+    username = StringField('Username', validators=[DataRequired()])
+    password = StringField('Password',validators = [DataRequired()], widget=PasswordField())
+    email = StringField('Email', validators = [DataRequired()])
     checkbox = BooleanField("Remember Me")
 
 class User:
@@ -81,40 +85,45 @@ class User:
 
 users = {}  # Placeholder for user data (in-memory storage)
 
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
-login_manager.init_app(app)
-
 
 @login_manager.user_loader
 def load_user(username):
     return users.get(username)
 
 
-@app.route('/Login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    create_login_form = LoginForm()
-    if request.method == 'POST' and create_login_form.validate():
+    form = LoginForm()
+    if request.method == 'POST':
         username = request.form['username']
-        if username in users and request.form['password'] == users[username]:
-            return 'Login successful!'
+        password = request.form['password']
+        if username in users and users[username] == password:
+            user = User(username, password, None)
+            login_user(user)
+            return redirect(url_for('main'))
         else:
-            return 'Login failed. Please check your username and password.'
-    return render_template('login.html')
+            return 'Invalid username/password combination'
+    return render_template('login.html', form=form)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    form = RegisterForm()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
+
         if username in users:
-            return 'Username already exists. Please choose a different username.'
+            return 'Username already exists!'
+    
         else:
             users[username] = password
-            return 'Sign up successful! Please proceed to login.'
+            print(users)
+            return redirect(url_for('main'))
+        
     return render_template('signup.html')
+
 
 
 if __name__ == '__main__':
