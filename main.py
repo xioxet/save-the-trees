@@ -1,12 +1,13 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, BooleanField, SubmitField, IntegerField
+from wtforms import StringField, TextAreaField, BooleanField, SubmitField, IntegerField, PasswordField
 from wtforms.validators import DataRequired, Email, NumberRange
-
+from flask_login import LoginManager, login_user
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
-
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 # classes by v.
 
@@ -30,10 +31,6 @@ class PaymentForm_2(FlaskForm):
 @app.route('/')
 def main():
     return render_template("home.html")
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    return render_template("login.html")
 
 
 # payment functions by v.
@@ -71,9 +68,9 @@ class LoginForm(FlaskForm):
     checkbox = BooleanField("Remember Me")
 
 class RegisterForm(FlaskForm):
-    username = StringField('Username', [validators.DataRequired()])
-    password = StringField('Password',[validators.Length(max=100), validators.DataRequired()], widget=PasswordField())
-    email = StringField('Email', [validators.DataRequired()])
+    username = StringField('Username', validators=[DataRequired()])
+    password = StringField('Password',validators = [DataRequired()], widget=PasswordField())
+    email = StringField('Email', validators = [DataRequired()])
     checkbox = BooleanField("Remember Me")
 
 class User:
@@ -94,7 +91,7 @@ def load_user(username):
     return users.get(username)
 
 
-@app.route('/Login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if request.method == 'POST':
