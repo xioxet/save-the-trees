@@ -116,9 +116,12 @@ def signup():
 
         if username in users:
             return 'Username already exists!'
+    
         else:
             users[username] = password
+            print(users)
             return redirect(url_for('main'))
+        
     return render_template('signup.html')
 
 

@@ -1,5 +1,6 @@
-{% extends "base.html" %} {% block title %}Sign Up{% endblock %} {% block
-content %}
+{% extends "form_base.html" %}
+
+{% block form %}
 <form method="POST">
   <h3 align="center">Sign Up</h3>
   <div class="form-group">
@@ -13,12 +14,12 @@ content %}
     />
   </div>
   <div class="form-group">
-    <label for="firstName">First Name</label>
+    <label for="firstName">Username</label>
     <input
       type="text"
       class="form-control"
-      id="firstName"
-      name="firstName"
+      id="username"
+      name="username"
       placeholder="Enter first name"
     />
   </div>
@@ -27,8 +28,8 @@ content %}
     <input
       type="password"
       class="form-control"
-      id="password1"
-      name="password1"
+      id="password"
+      name="password"
       placeholder="Enter password"
     />
   </div>
