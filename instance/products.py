@@ -1,34 +1,4 @@
-import mysql.connector
-
-mydb = mysql.connector.connect(
-    host='localhost',
-    user='stt_user',
-    password='MySql123!',
-    port='3306',
-    database='stt_db',
-)
-
-mycursor = mydb.cursor()
-
-mycursor.execute('select * from users')
-users = mycursor.fetchall()
-
-for user in users:
-    print(user)
-    print('username: ', user[0])
-    print('password: ', user[1])
-
-
-mycursor.execute("ALTER TABLE users CHANGE password varchar(255) NOT NULL")
-
-mycursor.execute("ALTER TABLE users DROP username, DROP password")
-
-mycursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", ("test", "test"))
-mydb.commit()
-
-def add_user():
-    pass
-
+from base import mydb, mycursor
 
 def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
     insert_product = ("INSERT INTO products "
@@ -105,15 +75,6 @@ def delete_product(prod_id):
 
 
 if __name__ == "__main__":
-    mycursor.execute('select * from users')
-
-    login = mycursor.fetchall()
-
-    for users in login:
-        print(login)
-        print('username: ', users[0])
-        print('password: ', users[1])
-
     print("Add Product Test")
     add_product(1, "Product 1", 123.45, "Product 1 is the first product by Buy A Tree", 10, 1)
     mycursor.execute('select * from products')

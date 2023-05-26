@@ -1,0 +1,41 @@
+{% extends "form_base.html" %}
+
+{% block form %}
+<form method="POST">
+  {{ form.csrf_token }}
+  <h1>Contact</h1>
+  <div class='form-group'>
+    <label for="contact-email">Email</label>
+    {{ form.contact_email(class="form-control", placeholder="Enter email") }}
+    <small id="email-help" class="form-text text-muted">We will reply to you via email.</small>
+  </div>
+  <div class='form-group'>
+    <div class='row'>
+      <div class='col'>
+        <label for="email-fname">First name</label>
+        {{ form.contact_fname(class="form-control", placeholder="Enter first name") }}
+      </div>
+      <div class='col'>
+        <label for="email-lname">Last name</label>
+        {{ form.contact_lname(class="form-control", placeholder="Enter last name") }}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="contact-message">What is your message about?</label>
+    {{ form.contact_category(class="form-control") }}
+    <small id="message-help" class="form-text text-muted"></small>
+  </div>
+
+  <div class="form-group">
+    <label for="contact-message">Write a message</label>
+    {{ form.contact_message(class="form-control") }}
+    <small id="message-help" class="form-text text-muted"></small>
+  </div>
+
+    {{ form.contact_submit() }}
+
+</form>
+  
+{% endblock %}
