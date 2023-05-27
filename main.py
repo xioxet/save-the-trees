@@ -6,13 +6,13 @@ from payment import *
 from contact import *
 from login import *
 #
-
+from secrets import token_urlsafe
 #
 from instance.contact import *
 #
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SECRET_KEY'] = token_urlsafe()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
