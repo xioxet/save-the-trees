@@ -8,7 +8,7 @@ from payment import *
 from contact import *
 from login import *
 #
-
+from secrets import token_urlsafe
 #
 from instance.contact import *
 #
