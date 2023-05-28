@@ -1,39 +1,55 @@
-<!-- table.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Data Table</title>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-        }
-    </style>
-</head>
-<body>
-    <table>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="col m-auto" style="justify-content: center; text-align: center;">
+    <br>
+    {% if replied %}
+        <h1>View replied contact form responses</h1>
+        <a href="{{ url_for('contact_view', replied='false') }}" class="btn btn-primary">View unreplied</a>
+    {% else %}
+        <h1>View unreplied contact form responses</h1>
+        <a href="{{ url_for('contact_view', replied='true') }}" class="btn btn-primary">View replied</a>
+    {% endif %}
+    <br><br>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-success w-25 m-auto">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
+    <br>
+    <table id="contactsTable" class="table table-striped table-bordered w-75 m-auto">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Email</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Category</th>
-                <th>Message</th>
+                <th onclick="sortTable(0)">ID</th>
+                <th onclick="sortTable(1)">Email</th>
+                <th onclick="sortTable(2)">First Name</th>
+                <th onclick="sortTable(3)">Last Name</th>
+                <th onclick="sortTable(4)">Category</th>
+                <th onclick="sortTable(5)">Message</th>
+                {% if replied %}<th>Response</th>{% endif %}
+                <th>Reply</th>
+                <th>Delete</th>
             </tr>
         </thead>
         <tbody>
             {% for row in data %}
                 <tr>
                     {% for item in row %}
-                        <td>{{ item }}</td>
+                        {% if loop.index == 6 %} <!-- Check if it's the 'Message' column -->
+                            <td style="word-wrap: break-word; max-width:300px;max-height:300px;overflow-y:scroll;">{{ item }}</td> <!-- Apply word-wrap style -->
+                        {% else %}
+                            <td>{{ item }}</td>
+                        {% endif %}
                     {% endfor %}
+                    <td><a class="btn btn-success" href="/contact_reply/{{ row[0] }}">Reply</a></td>
+                    <td><a class="btn btn-danger" href="/contact_delete/{{ row[0] }}">Delete</a></td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+</div>
+{% endblock %}

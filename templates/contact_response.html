@@ -1,0 +1,20 @@
+{% extends "form_base.html" %}
+
+{% block form %}
+<form method="POST">
+  {{ form.csrf_token }}
+  <h1>Reply to the following message...</h1>
+  <div class="row">
+    <div style="text-align: center; margin:auto; font-size:20px;">to: {{name}}, email: {{email}}</div>
+  </div>
+  <div class="row mt-2">
+  <p style="background-color: rgb(244, 255, 240); padding: 20px; border: 1px solid gray; border-radius:5px; width:100%; word-wrap:break-word; overflow: none;">{{message}}</p>
+  </div>
+  <div class="row"> 
+    {{form.contact_response(class="form-control", placeholder="Enter message...")}}
+  </div><br>
+  <div class="row">
+    {{form.contact_submit(class="btn btn-success")}}
+  </div>
+</form>
+{% endblock %}

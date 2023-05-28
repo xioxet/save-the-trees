@@ -4,6 +4,17 @@
 <form method="POST">
   {{ form.csrf_token }}
   <h1>Contact</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-danger">
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endwith %}
   <div class='form-group'>
     <label for="contact-email">Email</label>
     {{ form.contact_email(class="form-control", placeholder="Enter email") }}
@@ -34,7 +45,7 @@
     <small id="message-help" class="form-text text-muted"></small>
   </div>
 
-    {{ form.contact_submit() }}
+    {{ form.contact_submit(class="btn btn-success") }}
 
 </form>
   

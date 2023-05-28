@@ -1,5 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import LoginManager, login_user
+from secrets import token_urlsafe
+
 
 #
 from payment import *
@@ -12,7 +14,7 @@ from instance.contact import *
 #
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SECRET_KEY'] = token_urlsafe()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -54,14 +56,63 @@ def contact_form():
             request.form["contact_fname"],
             request.form["contact_lname"],
             request.form["contact_category"],
-            request.form["contact_message"]
+            request.form["contact_message"],
+            0
         )
+        flash('Your inquiry has been received! We will reply shortly.')
+        return redirect(url_for('main'))
+    else:
+        # If form validation fails, display error messages to the user
+        errors = form.errors
+        for field, field_errors in errors.items():
+            print(field, field_errors)
+            flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
     return render_template("contact_form.html", form=form)
 
-@app.route('/contact_view')
-def contact_view():
-    data = get_contact()
-    return render_template('contact_view.html', data=data)
+# i am SO SORRY FOR THIS ENTIRE FUNCTION...
+@app.route('/contact_view/<string:replied>')
+def contact_view(replied):
+    replied = replied.lower() == 'true'  # Convert the string to a boolean value
+    if replied:
+        data = list()
+        for tup in get_contact(replied=replied):
+            tup = list(tup)
+            tup.pop(-2)
+            data.append(tup) # looking at this ... :/
+    else:
+        data = [tup[:-2] for tup in get_contact(replied=replied)]
+    return render_template('contact_view.html', data=data, replied=replied)
+
+
+
+@app.route('/contact_reply/<id>', methods=['GET', 'POST'])
+def contact_reply(id):
+    data = search_contact(id)
+    form = ContactResponseForm()
+    message = data[0][5]
+    email = data[0][1]
+    name = f'{data[0][2]} {data[0][3]}'
+    if form.validate_on_submit(): 
+        print(request.form["contact_response"])
+        set_responded(id, request.form["contact_response"])
+        flash("You have successfully responded to the message!")
+        return redirect('/contact_view/false')
+    return render_template('contact_response.html', message=message, email=email, name=name, form=form)
+
+@app.route('/contact_delete/<id>', methods=['GET', 'POST'])
+def contact_delete(id):
+    data = search_contact(id)
+    message = data[0][5]
+    email = data[0][1]
+    name = f'{data[0][2]} {data[0][3]}'
+    form = ContactDeleteForm()
+    if form.validate_on_submit():
+        flash('Entry successfully deleted!')
+        print(id)
+        delete_contact(id)
+        return redirect('/contact_view/false')
+    else:
+        return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
 #dominic part
 

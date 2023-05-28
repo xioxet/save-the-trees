@@ -14,5 +14,12 @@ class ContactForm(FlaskForm):
         ('other', 'Other'),
 
     ])
-    contact_message = TextAreaField('Write a message...', validators=[DataRequired(), Length(max=2500)])
+    contact_message = TextAreaField('Write a message...', validators=[DataRequired(), Length(max=500)])
     contact_submit = SubmitField('Submit')
+
+class ContactResponseForm(FlaskForm):
+    contact_response = TextAreaField('Write a reply...', validators=[DataRequired()])
+    contact_submit = SubmitField("Submit")
+
+class ContactDeleteForm(FlaskForm):
+    contact_submit = SubmitField("Delete")

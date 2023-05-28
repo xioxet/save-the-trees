@@ -6,6 +6,16 @@
   <link rel="stylesheet" href='static/home.css'>
   <div class="home_body">
     <img src="{{url_for('static', filename='images/vector_bg.png')}}">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <br><br>
+      <div class="alert alert-success w-25 m-auto">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
     <div class="row">
       <div class="header">
         <span>S</span><span>A</span><span>V</span><span>E</span> <span>T</span><span>H</span><span>E</span> <span>T</span><span>R</span><span>E</span><span>E</span><span>S</span>
