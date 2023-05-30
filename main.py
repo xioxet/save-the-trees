@@ -7,6 +7,7 @@ from secrets import token_urlsafe
 from payment import *
 from contact import *
 from login import *
+from product_form import SearchForm
 #
 from secrets import token_urlsafe
 #
@@ -78,7 +79,7 @@ def contact_view(replied):
         for tup in get_contact(replied=replied):
             tup = list(tup)
             tup.pop(-2)
-            data.append(tup) # looking at this ... :/
+            data.append(tup)  # looking at this ... :/
     else:
         data = [tup[:-2] for tup in get_contact(replied=replied)]
     return render_template('contact_view.html', data=data, replied=replied)
@@ -154,6 +155,12 @@ def signup():
         
     return render_template('signup.html')
 
+
+
+@app.route("/products")
+def products():
+    form = SearchForm()
+    return render_template("products.html", form=form)
 
 if __name__ == '__main__':
     app.run()

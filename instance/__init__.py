@@ -2,7 +2,7 @@ import mysql.connector
 
 mydb = mysql.connector.connect(
     host='localhost',
-    user='root',
+    user='stt_user',
     password='MySql123!',
     port='3306',
     database='stt_db',

@@ -1,5 +1,6 @@
 from instance import mydb, mycursor
 
+
 def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
     insert_product = ("INSERT INTO products "
                       "(prod_id, prod_name, unit_price, description, stock, amt_sold, onsale)"
@@ -15,7 +16,7 @@ def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
         return False
 
 
-def search_product(prod_id, fields="*"):
+def search_product(prod_id="*", fields="*"):
     select_query = (f"SELECT {fields} FROM products "
                     "WHERE prod_id = %s")
     mycursor.execute(select_query, [prod_id])
@@ -93,9 +94,10 @@ if __name__ == "__main__":
     print("Update Field Test")
     print(update_field(2, 'onsale', 1))
     print(search_product(2, fields="onsale"))
+    update_field(1, 'onsale', 0)
 
     print("Sell Product Test")
-    sell_product(2, 5)
+    sell_product(1, 5)
     print(search_product(2, fields="stock"))
 
     print("Delete Product Test")
@@ -103,3 +105,5 @@ if __name__ == "__main__":
     mycursor.execute('select * from products')
     for test_product in mycursor.fetchall():
         print(test_product)
+
+    mydb.rollback()
