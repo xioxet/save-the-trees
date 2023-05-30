@@ -1,7 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_login import LoginManager, login_user
 from secrets import token_urlsafe
-
+from product_form import SearchForm
 
 #
 from payment import *
@@ -11,6 +11,7 @@ from login import *
 from secrets import token_urlsafe
 #
 from instance.contact import *
+from instance.orders import *
 #
 
 app = Flask(__name__)
@@ -31,6 +32,8 @@ def payment_1():
     form = PaymentForm_1()
 
     if form.validate_on_submit():
+        session['payment_info'] = request.form
+        print(session['payment_info'])
         return redirect(url_for('payment_2'))
 
     return render_template("payment_step1.html", form=form)
@@ -41,7 +44,12 @@ def payment_2():
     form = PaymentForm_2()
 
     if form.validate_on_submit():
-        print('done')
+        email, fname, lname, qty, message = session["payment_info"]["payment_email"], session["payment_info"]["payment_fname"], session["payment_info"]["payment_lname"], session["payment_info"]["payment_quantity"], session["payment_info"]["payment_message"]
+        if "payment_anonymous" in session["payment_info"].keys():
+            anonymous = 1
+        else: anonymous = 0
+        add_order(email, fname, lname, qty, message, anonymous)
+        flash('Your payment has been received and will be processed. Thank you!')
         return redirect('/')
 
     return render_template("payment_step2.html", form=form)
@@ -83,7 +91,25 @@ def contact_view(replied):
         data = [tup[:-2] for tup in get_contact(replied=replied)]
     return render_template('contact_view.html', data=data, replied=replied)
 
+# wew lad.
+@app.route('/orders_view/<string:satisfied>')
+def orders_view(satisfied):
+    satisfied = satisfied.lower() == 'true'
+    data = [tup[:-1] for tup in get_satisfied_orders(satisfied)]
+    return render_template('orders_view.html', data=data, satisfied=satisfied)
 
+@app.route('/orders_satisfy/<id>', methods=['GET', 'POST'])
+def orders_satisfy(id):
+    data = search_orders(id)
+    email = data[0][1]
+    name = f'{data[0][2]} {data[0][3]}'
+    quantity = data[0][4]
+    form = SatisfyForm()
+    if form.validate_on_submit():
+        set_satisfied(id)
+        flash("Successfully marked as satisfied!")
+        return redirect('/orders_view/false')
+    return render_template('orders_satisfy.html', email=email, name=name, quantity=quantity, form=form)
 
 @app.route('/contact_reply/<id>', methods=['GET', 'POST'])
 def contact_reply(id):
@@ -153,6 +179,62 @@ def signup():
             return redirect(url_for('main'))
         
     return render_template('signup.html')
+
+#joef
+from instance import mydb, mycursor
+
+# Read operation - Display all events
+@app.route('/events')
+def events():
+    mycursor.execute("SELECT * FROM events")
+    events = mycursor.fetchall()
+    print(events)
+    return render_template('events.html', events=events)
+
+# Create operation - Add a new event
+@app.route('/event_add', methods=['GET', 'POST'])
+def event_add():
+    if request.method == 'POST':
+        title = request.form['title']
+        date = request.form['date']
+        description = request.form['description']
+        print(title, date, description)
+        mycursor.execute("INSERT INTO events (title, date, description) VALUES (%s, %s, %s)", (title, date, description))
+        mydb.commit()
+        return redirect('/events')
+    else:
+        return render_template('event_add.html')
+
+# Update operation - Edit an event
+@app.route('/event_edit/<int:event_id>', methods=['GET', 'POST'])
+def event_edit(event_id):
+    mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
+    event = mycursor.fetchone()
+
+    if event:
+        if request.method == 'POST':
+            title = request.form['title']
+            date = request.form['date']
+            description = request.form['description']
+            mycursor.execute("UPDATE events SET title = %s, date = %s, description = %s WHERE id = %s", (title, date, description, event_id))
+            mydb.commit()
+            return redirect('/events')
+        else:
+            return render_template('event_edit.html', event=event)
+    else:
+        return 'Event not found', 404
+
+# Delete operation - Remove an event
+@app.route('/event_delete/<int:event_id>', methods=['POST'])
+def delete(event_id):
+    mycursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
+    mydb.commit()
+    return redirect('/events')
+
+@app.route("/products")
+def products():
+    form = SearchForm()
+    return render_template("products.html", form=form)
 
 
 if __name__ == '__main__':

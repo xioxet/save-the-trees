@@ -7,6 +7,7 @@ class PaymentForm_1(FlaskForm):
     payment_email = StringField('Email', validators=[DataRequired(), Email()])
     payment_fname = StringField('First Name', validators=[DataRequired()])
     payment_lname = StringField('Last Name', validators=[DataRequired()])
+    payment_quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1, max=100)])
     payment_message = TextAreaField('Write a Message')
     payment_anonymous = BooleanField('Remain Anonymous')
     payment_submit = SubmitField('Next')
@@ -19,3 +20,6 @@ class PaymentForm_2(FlaskForm):
     payment_billing_address_1 = StringField('Billing Address', validators=[DataRequired()])
     payment_billing_address_2 = StringField('', validators=[DataRequired()])
     payment_submit = SubmitField('Pay')
+
+class SatisfyForm(FlaskForm):
+    order_submit = SubmitField('Mark')
