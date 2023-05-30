@@ -15,7 +15,7 @@ def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
         return False
 
 
-def search_product(prod_id, fields="*"):
+def search_product(prod_id="*", fields="*"):
     select_query = (f"SELECT {fields} FROM products "
                     "WHERE prod_id = %s")
     mycursor.execute(select_query, [prod_id])
@@ -103,3 +103,5 @@ if __name__ == "__main__":
     mycursor.execute('select * from products')
     for test_product in mycursor.fetchall():
         print(test_product)
+
+    mydb.rollback()

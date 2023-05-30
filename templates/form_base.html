@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% from "includes/_formHelper.html" import render_field %}
 <link rel="stylesheet" href='{{url_for('static', filename='forms.css')}}'>
 <link rel="stylesheet" href='{{url_for('static', filename='home.css')}}'>
 <div class="home_body">
