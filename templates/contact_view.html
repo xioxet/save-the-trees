@@ -31,7 +31,7 @@
                 <th onclick="sortTable(4)">Category</th>
                 <th onclick="sortTable(5)">Message</th>
                 {% if replied %}<th>Response</th>{% endif %}
-                <th>Reply</th>
+                {% if not replied %}<th>Reply</th>{% endif %}
                 <th>Delete</th>
             </tr>
         </thead>
@@ -45,7 +45,7 @@
                             <td>{{ item }}</td>
                         {% endif %}
                     {% endfor %}
-                    <td><a class="btn btn-success" href="/contact_reply/{{ row[0] }}">Reply</a></td>
+                    {% if not replied %}<td><a class="btn btn-success" href="/contact_reply/{{ row[0] }}">Reply</a></td>{% endif %}
                     <td><a class="btn btn-danger" href="/contact_delete/{{ row[0] }}">Delete</a></td>
                 </tr>
             {% endfor %}

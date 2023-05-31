@@ -1,0 +1,15 @@
+{% extends "form_base.html" %}
+
+{% block form %}
+<form method="POST">
+  {{ form.csrf_token }}
+  <h1>Mark the following order as satisfied...</h1>
+  <div class="row">
+    <div style="text-align: center; margin:auto; font-size:20px;">from: {{name}}, email: {{email}}, quantity: {{quantity}}</div>
+  </div>
+  <br>
+  <div class="row">
+    {{form.order_submit(class="btn btn-success m-auto")}}
+  </div>
+</form>
+{% endblock %}
