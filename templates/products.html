@@ -7,10 +7,20 @@
     <h3>Products</h3>
     <div class="form-group">
         <div class="row">
-            {{ form.search_name(class="col-sm-8 col-md-10 form-control", placeholder="Product Name") }}
+            {{ form.search_name(class="col-sm-8 col-md-10 form-control", placeholder="Product Name", id="search_name") }}
 
-            <input type="submit" value="Submit" class="btn btn-primary"/>
+            <input type="button" value="Submit" onclick="search()" class="btn btn-primary"/>
         </div>
     </div>
 </form>
+<table></table>
+<script>
+    function search(){
+        var xhttp = new XMLHttpRequest();
+        const search_name = document.getElementById("search_name").value
+        xhttp.open("POST", "rest/products", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("search_name="+`${search_name}`);
+    }
+</script>
 {% endblock %}

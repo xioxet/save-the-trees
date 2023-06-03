@@ -13,6 +13,7 @@ from secrets import token_urlsafe
 #
 from instance.contact import *
 from instance.orders import *
+from json import dumps
 #
 
 app = Flask(__name__)
@@ -232,17 +233,20 @@ def delete(event_id):
     mydb.commit()
     return redirect('/events')
 
-@app.route("/products")
-def products():
-    form = SearchForm()
-    return render_template("products.html", form=form)
-
-
 
 @app.route("/products")
 def products():
     form = SearchForm()
     return render_template("products.html", form=form)
+
+@app.route("/rest/products", methods=["GET", "POST"])
+def prod_search_api():
+    if request.method != "POST":
+        return redirect("/products")
+    print(request.form)
+    return "test"
+
+
 
 if __name__ == '__main__':
     app.run()
