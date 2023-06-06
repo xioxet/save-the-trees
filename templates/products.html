@@ -13,14 +13,21 @@
         </div>
     </div>
 </form>
-<table></table>
+<div id="results">
 <script>
     function search(){
         var xhttp = new XMLHttpRequest();
         const search_name = document.getElementById("search_name").value
         xhttp.open("POST", "rest/products", true);
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+             document.getElementById("results").innerHTML = this.responseText;
+             console.log(JSON.parse(this.responseText))
+            }
+        };
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send("search_name="+`${search_name}`);
+
     }
 </script>
 {% endblock %}

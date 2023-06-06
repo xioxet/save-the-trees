@@ -19,7 +19,11 @@ def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
 def search_product(prod_id="*", fields="*"):
     select_query = (f"SELECT {fields} FROM products "
                     "WHERE prod_id = %s")
-    mycursor.execute(select_query, [prod_id])
+    if prod_id == "*":
+        select_query = f"SELECT {fields} FROM products"
+        mycursor.execute(select_query)
+    else:
+        mycursor.execute(select_query, [prod_id])
     return mycursor.fetchall()  # List of tuples of fields for each result matched
 
 
@@ -86,6 +90,7 @@ if __name__ == "__main__":
     print(search_product(2))
     print(search_product(1))
     print(search_product(3))
+    print(search_product("*"))
 
     print("Add Stock Test")
     print(add_stock(2, 5))

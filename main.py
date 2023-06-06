@@ -13,6 +13,7 @@ from secrets import token_urlsafe
 #
 from instance.contact import *
 from instance.orders import *
+import instance.products as product_server
 from json import dumps
 #
 
@@ -244,9 +245,17 @@ def prod_search_api():
     if request.method != "POST":
         return redirect("/products")
     print(request.form)
+    result = product_server.search_product(prod_id="*")
+    print(result)
+    results = []
+    for product in product_server.search_product(prod_id="*"):
+        if request.form["search_name"] in product[1]:
+            results.append((product[0], product[1], str(product[2]), product[3], product[4]))
+    print(results)
+    return dumps({"result": results})
     return "test"
 
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
