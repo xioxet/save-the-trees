@@ -1,7 +1,7 @@
 {% extends "form_base.html" %}
 {% from "includes/_formHelper.html" import render_field %}
 {% block form %}
-
+<div class="container-fluid">
 <form method="POST">
     {{ form.csrf_token }}
     <h3>Products</h3>
@@ -13,7 +13,7 @@
         </div>
     </div>
 </form>
-<div id="results">
+<div id="results"></div>
 <script>
     function search(){
         var xhttp = new XMLHttpRequest();
@@ -21,8 +21,36 @@
         xhttp.open("POST", "rest/products", true);
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-             document.getElementById("results").innerHTML = this.responseText;
-             console.log(JSON.parse(this.responseText))
+                document.getElementById("results").innerText = this.responseText;
+                console.log(JSON.parse(this.responseText))
+                let results = JSON.parse(this.responseText)["result"]
+                document.getElementById("results").innerHTML = ""
+                for(i in results){
+                    console.log(results[i])
+                    const item = results[i]
+                    const r = document.createElement("div")
+                    r.setAttribute("class", "row")
+                    const pic = document.createElement("img")
+                    pic.setAttribute("class", "")
+                    pic.setAttribute("src", "/static/images/products/"+item[0]+".png")
+                    r.appendChild(pic)
+                    product_name = document.createElement("h6")
+                    product_name.innerText = item[0]
+                    r.appendChild(product_name)
+                    description = document.createElement("p")
+                    description.innerText = item[2]
+                    r.appendChild(description)
+                    unit_price = document.createElement("p")
+                    unit_price.innerText = item[1]
+                    r.appendChild(unit_price)
+                    stock = document.createElement("p")
+                    stock.innerText = item[3]
+                    r.appendChild(stock)
+
+                    document.getElementById("results").appendChild(r)
+
+
+                }
             }
         };
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -30,4 +58,5 @@
 
     }
 </script>
+</div>
 {% endblock %}
