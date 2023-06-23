@@ -250,10 +250,8 @@ def prod_search_api():
     results = []
     for product in product_server.search_product(prod_id="*"):
         if request.form["search_name"] in product[1]:
-            results.append((product[1], str(product[2]), product[3], product[4]))  # name, unitprice, description, stock
-    print(results)
-    return dumps({"result": results})
-    return "test"
+            results.append((product[0], product[1], float(str(product[2])), product[3], product[4]))
+    return dumps({"result": results})  # product ID, name, unit_price, description, stock
 
 
 

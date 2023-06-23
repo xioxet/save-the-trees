@@ -1,20 +1,36 @@
 {% extends "form_base.html" %}
 {% from "includes/_formHelper.html" import render_field %}
 {% block form %}
-<div class="container-fluid">
-<form method="POST">
-    {{ form.csrf_token }}
-    <h3>Products</h3>
-    <div class="form-group">
-        <div class="row">
-            {{ form.search_name(class="col-sm-8 col-md-10 form-control", placeholder="Product Name", id="search_name") }}
-
-            <input type="button" value="Submit" onclick="search()" class="btn btn-primary"/>
-        </div>
-    </div>
-</form>
-<div id="results"></div>
 <script>
+
+    function addCart(product_id, prod_name, price){
+        console.log("Add cart "+product_id.toString())
+        let cart=null
+        try{cart = JSON.parse(localStorage["cart"])}
+        catch{
+            localStorage["cart"] = []
+            cart=[]
+        }
+        var new_item = true
+        for(i in cart){
+            item = cart[i]
+            if(product_id == item[0]){
+                cart[i] = [product_id, prod_name, price, item[3]+1]
+                new_item = false
+                break
+            }
+        }
+        if(new_item){
+            cart.push([product_id, prod_name, price, 1])
+        }
+        localStorage["cart"] = JSON.stringify(cart)
+    }
+
+    form_submit = function(e){
+    e.preventDefault();
+    search();
+    }
+
     function search(){
         var xhttp = new XMLHttpRequest();
         const search_name = document.getElementById("search_name").value
@@ -32,20 +48,26 @@
                     r.setAttribute("class", "row")
                     const pic = document.createElement("img")
                     pic.setAttribute("class", "")
-                    pic.setAttribute("src", "/static/images/products/"+item[0]+".png")
+                    pic.setAttribute("src", "/static/images/products/Product%20"+item[0]+".png")
                     r.appendChild(pic)
-                    product_name = document.createElement("h6")
-                    product_name.innerText = item[0]
+                    let product_name = document.createElement("h6")
+                    product_name.innerText = item[1]
                     r.appendChild(product_name)
-                    description = document.createElement("p")
-                    description.innerText = item[2]
+                    let description = document.createElement("p")
+                    description.innerText = item[3]
                     r.appendChild(description)
-                    unit_price = document.createElement("p")
-                    unit_price.innerText = item[1]
+                    let unit_price = document.createElement("p")
+                    unit_price.innerText = item[2]
                     r.appendChild(unit_price)
-                    stock = document.createElement("p")
-                    stock.innerText = item[3]
+                    let stock = document.createElement("p")
+                    stock.innerText = item[4]
                     r.appendChild(stock)
+                    let add_cart_btn = document.createElement("button")
+                    add_cart_btn.innerText = "Add to Cart"
+                    add_cart_btn.setAttribute("type", "button")
+                    add_cart_btn.setAttribute("class", "btn btn-secondary")
+                    add_cart_btn.setAttribute("onclick", "addCart("+item[0]+", '"+item[1]+"', "+item[2]+")")
+                    r.appendChild(add_cart_btn)
 
                     document.getElementById("results").appendChild(r)
 
@@ -58,5 +80,19 @@
 
     }
 </script>
+<div class="container-fluid">
+<form onsubmit="form_submit(event)">
+    <!-- {{ form.csrf_token }} -->
+    <h3>Products</h3>
+    <div class="form-group">
+        <div class="row">
+            {{ form.search_name(class="col-sm-8 col-md-10 form-control", placeholder="Product Name", id="search_name") }}
+
+            <input type="button" value="Submit" id="search_btn" onclick="search()" class="btn btn-primary"/>
+        </div>
+    </div>
+</form>
+<div id="results"></div>
+
 </div>
 {% endblock %}
