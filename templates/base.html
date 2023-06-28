@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="static/home.css">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -30,23 +30,143 @@
         </ul>
     </div>
     <button type="button" id="cartbtn" class="btn btn-secondary navbar-right navbar-btn" data-bs-toggle="popover"
-            data-bs-placement="bottom" data-bs-custom-class="cart_popover" data-bs-content="Test"
-            onmouseover="loadCart()">Cart</button>
+            data-bs-placement="left" data-bs-custom-class="cart_popover" title="Cart" data-bs-container="body" data-bs-content='Test'
+            onclick="loadCart()" onload="">Cart</button>
 </nav>
 
 {% block content %}{% endblock %}
 
 <script>
-    const cart_popover = new bootstrap.Popover(document.getElementById("cartbtn"))
+
+    const cart_popover = bootstrap.Popover.getOrCreateInstance('#cartbtn', {html: true})
+    function load_anchors(){
+        console.log("Shown popover")
+        add_anchors = document.getElementsByClassName("add_anchor")
+        for(i = 0; i < add_anchors.length; i++){
+            console.log(i)
+            const add_anchor = add_anchors[i]
+            console.log(add_anchor)
+            const row_id = add_anchor.getAttribute("id").slice(3)
+            console.log(row_id)
+            add_anchor.addEventListener("click", () => {countUp(Number(row_id))})
+            document.getElementById("sub"+row_id).addEventListener("click", () => {countDown(Number(row_id))})
+        }
+    }
+    document.getElementById("cartbtn").addEventListener("shown.bs.popover", load_anchors)
+
     function loadCart(){
         try{cart = JSON.parse(localStorage["cart"])}
         catch{
             localStorage["cart"] = []
             cart=[]
         }
+        document.getElementById("cartbtn").setAttribute("data-bs-content", "")
+        const serializer = new XMLSerializer();
+        let sr = ""
         for(i in cart){
             item = cart[i]
             console.log(item)
+            const r = document.createElement("div")
+            r.setAttribute("class", "row")
+            r.setAttribute("id", "product"+item[0])
+            const name_column = document.createElement("div")
+            name_column.setAttribute("class", "col-8")
+            product_name = document.createElement("p")
+            product_name.innerText = item[1]
+            name_column.appendChild(product_name)
+            r.appendChild(name_column)
+            const count_column = document.createElement("div")
+            count_column.setAttribute("class", "col-4")
+
+            let add_anchor = document.createElement("a")
+            add_anchor.setAttribute("role", "button")
+            add_anchor.setAttribute("id", "add"+item[0])
+            add_anchor.setAttribute("class", "add_anchor")
+            //add_anchor.addEventListener("click", countUp(item[0]))
+            let add_button = document.createElement("img")
+            add_button.setAttribute("src", "/static/images/add_button.png")
+            add_anchor.appendChild(add_button)
+            count_column.appendChild(add_anchor)
+
+            let count = document.createElement("span")
+            count.setAttribute("id", "count"+item[0])
+            count.setAttribute("class", "count-text")
+            count.innerText = item[3]
+            count_column.appendChild(count)
+
+            let sub_anchor = document.createElement("a")
+            sub_anchor.setAttribute("role", "button")
+            sub_anchor.setAttribute("id", "sub"+item[0])
+            sub_anchor.setAttribute("class", "sub_anchor")
+            //sub_anchor.addEventListener("click", countDown(item[0]))
+            let sub_button = document.createElement("img")
+            sub_button.setAttribute("src", "/static/images/sub_button.png")
+            sub_anchor.appendChild(sub_button)
+            count_column.appendChild(sub_anchor)
+
+            r.appendChild(count_column)
+            sr = sr + serializer.serializeToString(r)
+            console.log(sr)
+
+        }
+        if(sr == ""){
+            sr = "<a href='/products'>Add products to your cart!</a>"
+        }
+        cart_popover.setContent({".popover-body": sr})
+        count_texts = document.getElementsByClassName("count-text")
+        console.log(count_texts)
+
+
+    }
+    function countUp(product_id){
+        let cart=null
+        try{cart = JSON.parse(localStorage["cart"])}
+        catch{
+            localStorage["cart"] = []
+            cart=[]
+        }
+        console.log(cart)
+        for(i = 0; i < cart.length; i++){
+            item = cart[i]
+            if(product_id == item[0]){
+                console.log("countUp "+product_id)
+                cart[i] = [product_id, item[1], item[2], item[3]+1]
+                const count_text = document.getElementById("count"+product_id)
+                if(count_text != null){count_text.innerText = cart[i][3]}
+                break
+            }
+        }
+        localStorage["cart"] = JSON.stringify(cart)
+
+    }
+
+    function countDown(product_id){
+        let cart=null
+        try{cart = JSON.parse(localStorage["cart"])}
+        catch{
+            localStorage["cart"] = []
+            cart=[]
+        }
+        console.log(cart)
+        for(i = 0; i < cart.length; i++){
+            item = cart[i]
+            if(product_id == item[0]){
+            console.log("countDown "+product_id)
+                if(item[3]-1 < 1){
+                    cart.splice(i, 1)
+                    document.getElementById("product"+item[0]).remove() // Remove from cart dislay
+                }
+                else{
+                    cart[i] = [product_id, item[1], item[2], item[3]-1]
+                    const count_text = document.getElementById("count"+product_id)
+                    if(count_text != null){count_text.innerText = cart[i][3]}
+                }
+                break
+            }
+        }
+        localStorage["cart"] = JSON.stringify(cart)
+        if(cart.length == 0){
+            cart_popover.hide()
         }
     }
 </script>

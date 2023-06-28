@@ -24,7 +24,10 @@
             cart.push([product_id, prod_name, price, 1])
         }
         localStorage["cart"] = JSON.stringify(cart)
+        loadCart()
     }
+
+
 
     form_submit = function(e){
     e.preventDefault();
@@ -82,7 +85,7 @@
 </script>
 <div class="container-fluid">
 <form onsubmit="form_submit(event)">
-    <!-- {{ form.csrf_token }} -->
+    {{ form.csrf_token }}
     <h3>Products</h3>
     <div class="form-group">
         <div class="row">
