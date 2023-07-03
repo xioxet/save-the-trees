@@ -16,6 +16,11 @@ from instance.orders import *
 import instance.products as product_server
 from json import dumps
 #
+from instance.user import *
+
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = token_urlsafe()
@@ -153,35 +158,32 @@ def load_user(username):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if username in users and users[username] == password:
-            user = User(username, password, None)
-            login_user(user)
-            return redirect(url_for('main'))
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = find_username(username)
+        if user:
+            if user[2] == password:
+                print('success')
         else:
-            return 'Invalid username/password combination'
+            print('failure')
+        return redirect(url_for('main'))
+    print(form.errors.items())
     return render_template('login.html', form=form)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = RegisterForm()
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        email = request.form['email']
-
-        if username in users:
-            return 'Username already exists!'
-    
+    if form.validate_on_submit():
+        username, password, email = form.username.data, form.password.data, form.email.data
+        user = find_username(username)
+        if user:
+            print("user already found")
         else:
-            users[username] = password
-            print(users)
+            add_user(username, password, email)
             return redirect(url_for('main'))
-        
-    return render_template('signup.html')
+    return render_template('signup.html', form=form)
 
 #joef
 from instance import mydb, mycursor

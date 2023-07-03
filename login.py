@@ -5,25 +5,26 @@ from wtforms.validators import DataRequired, Email
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = StringField('Password', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField("Login")
     checkbox = BooleanField("Remember Me")
 
 class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    password = StringField('Password',validators = [DataRequired()], widget=PasswordField())
+    password = StringField('Password',validators = [DataRequired()])
     email = StringField('Email', validators = [DataRequired()])
-    checkbox = BooleanField("Remember Me")
+    submit = SubmitField("Login")
 
 
 class User:
-    def __init__(self, username, password, email):
+    def __init__(self, user_id, username, password, email):
+        self.user_id = user_id
         self.username = username
         self.password = password
         self.email = email
 
     def get_id(self):
         return self.username
-
-
-users = {}  # Placeholder for user data (in-memory storage)
+    
+users = {
+    "username":"password"
+}
