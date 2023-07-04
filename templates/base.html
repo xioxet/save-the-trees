@@ -70,7 +70,7 @@
             r.setAttribute("class", "row")
             r.setAttribute("id", "product"+item[0])
             const name_column = document.createElement("div")
-            name_column.setAttribute("class", "col-8")
+            name_column.setAttribute("class", "col-8 align-items-center")
             product_name = document.createElement("p")
             product_name.innerText = item[1]
             name_column.appendChild(product_name)
@@ -154,7 +154,7 @@
             console.log("countDown "+product_id)
                 if(item[3]-1 < 1){
                     cart.splice(i, 1)
-                    document.getElementById("product"+item[0]).remove() // Remove from cart dislay
+                    document.getElementById("product"+item[0]).remove() // Remove from cart display
                 }
                 else{
                     cart[i] = [product_id, item[1], item[2], item[3]-1]
