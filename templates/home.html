@@ -29,7 +29,10 @@
         Donate
       </button>
       <button type="button" class="btn btn-dark btn-lg mx-2">
-        Log in 
+      <a href="{{ url_for('login') }}" class="btn btn-dark btn-lg mx-2">
+        Log in
+      </a>
+<!--        remove the<a></a> codes when if fix size of button-->
       </button>
   </div>
 {% endblock %}

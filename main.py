@@ -204,7 +204,6 @@ def contact_delete(id):
         return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
 #dominic part
-
 @login_manager.user_loader
 def load_user(username):
     return users.get(username)
@@ -218,13 +217,21 @@ def login():
         password = form.password.data
         user = find_username(username)
         if user:
-            if user[2] == password:
-                print('success')
+            if user[0] == 1:
+                print('admin')
+                if user[2] == password:
+                    print('success')
+                    return redirect(url_for('admindashboard'))
+            else:
+                if user[2] == password:
+                    print('success')
+                    return redirect(url_for('dashboard'))
         else:
             print('failure')
-        return redirect(url_for('main'))
+            return redirect(url_for('main'))
     print(form.errors.items())
     return render_template('login.html', form=form)
+
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -239,6 +246,27 @@ def signup():
             add_user(username, password, email)
             return redirect(url_for('main'))
     return render_template('signup.html', form=form)
+
+@app.route('/admindashboard')
+def admindashboard():
+    if current_user.is_authenticated:
+        if current_user[0] != 1:
+            flash('You do not have access to the admin dashboard.')
+            return redirect(url_for('dashboard'))
+        return render_template('admindashboard.html')
+    else:
+        flash('Please log in to access the admin dashboard.')
+        return redirect(url_for('login'))
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    print("logged out")
+    return redirect(url_for('main'))
 
 #joef
 from instance import mydb, mycursor
