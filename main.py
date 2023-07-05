@@ -14,9 +14,10 @@ from secrets import token_urlsafe
 from instance.contact import *
 from instance.orders import *
 import instance.products as product_server
-from json import dumps
+from json import dumps, loads
 #
 from instance.user import *
+import stripe
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -32,7 +33,14 @@ login_manager.init_app(app)
 def main():
     return render_template("home.html")
 
+# BORN TO DIE
+# WORLD IS A FUCK
+# 鬼神 Kill Em All 1989
+# I am trash man
+# 410,757,864,530 DEAD COPS
 
+stripe.api_key = 'sk_test_51NPy8eJ7r4cbLfySEOd0sJelRzCcgjyxKybeDI85fZXUGlG00dJrAoaIorSkkU4h62RQv1j9E6DaKIEfcg72q2ig00uUzPf1g2'
+stripe_publishable_key = 'pk_test_51NPy8eJ7r4cbLfySvMseD9DbVTzgG2sUib1rl3jdtMKRdVQcGgNodVERYpGyZRIcvJKAdHKYXjUZhbBAa2jo1fpP00iiH4UNhC'
 
 # payment functions by v.
 @app.route('/payment_1', methods=['GET', 'POST'])
@@ -41,27 +49,74 @@ def payment_1():
 
     if form.validate_on_submit():
         session['payment_info'] = request.form
-        print(session['payment_info'])
         return redirect(url_for('payment_2'))
 
     return render_template("payment_step1.html", form=form)
 
-
 @app.route('/payment_2', methods=['GET', 'POST'])
 def payment_2():
-    form = PaymentForm_2()
+    payment_quantity = int(session['payment_info']['payment_quantity'])
+    payment_amount = f"{payment_quantity * 5:.2f}"
+    payment_amount_stripe = payment_quantity * 5 * 100
+    return render_template('payment_step2.html', publishable_key=stripe_publishable_key, payment_quantity=payment_quantity, payment_amount_stripe=payment_amount_stripe, payment_amount=payment_amount)
 
-    if form.validate_on_submit():
+@app.route('/process_payment', methods=['POST'])
+def process_payment_trees():
+    # Retrieve the necessary information from the request
+    token = request.form['stripeToken']
+    amount = request.form['amount']
+
+    try:
+        charge = stripe.Charge.create(
+            amount=int(amount),
+            currency='sgd',
+            source=token,
+            description='Payment for Flask App'
+        )
+
+        # prepare variables
         email, fname, lname, qty, message = session["payment_info"]["payment_email"], session["payment_info"]["payment_fname"], session["payment_info"]["payment_lname"], session["payment_info"]["payment_quantity"], session["payment_info"]["payment_message"]
         if "payment_anonymous" in session["payment_info"].keys():
             anonymous = 1
         else: anonymous = 0
+
         add_order(email, fname, lname, qty, message, anonymous)
-        flash('Your payment has been received and will be processed. Thank you!')
-        return redirect('/')
+        return render_template('payment_success.html', charge=charge)
+    
+    except stripe.error.CardError as e:
+        return render_template('payment_error.html', error_message=e)
+    
+# almost identical to above function but Uhhhhhhhhhh
+@app.route('/cart_get', methods=['GET','POST'])
+def get_cart():
+    cart_data = loads(request.json.get("cart"))
+    # calculate cost
+    stripe_price = 0
+    for product in cart_data:
+        stripe_price += product[2] * 100 * product[3]
+    session['stripe_price'] = stripe_price
+    return redirect(url_for('cart_checkout'))
 
-    return render_template("payment_step2.html", form=form)
+@app.route('/cart_checkout', methods=['GET','POST'])
+def cart_checkout():
+    return render_template('checkout.html', publishable_key=stripe_publishable_key, stripe_price=session['stripe_price'])
 
+@app.route('/process_checkout', methods=['GET', 'POST'])
+def process_checkout():
+    token = request.form['stripeToken']
+    amount = request.form['amount']
+    try:
+        charge = stripe.Charge.create(
+            amount=int(amount),
+            currency='sgd',
+            source=token,
+            description='Payment for Flask App'
+        )
+        return render_template('payment_success.html', charge=charge)
+    
+    except stripe.error.CardError as e:
+        return render_template('payment_error.html', error_message=e)
+    
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact_form():
@@ -258,4 +313,4 @@ def prod_search_api():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

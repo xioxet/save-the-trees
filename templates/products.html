@@ -48,16 +48,16 @@
                     console.log(results[i])
                     const item = results[i]
                     const r = document.createElement("div")
-                    r.setAttribute("class", "row")
+                    r.setAttribute("class", "row mb-4")
                     const pic_column = document.createElement("div")
-                    pic_column.setAttribute("class", "col-6")
+                    pic_column.setAttribute("class", "col-6 align-self-center")
                     const pic = document.createElement("img")
-                    pic.setAttribute("class", "w-auto")
+                    pic.setAttribute("style", "width: inherit")
                     pic.setAttribute("src", "/static/images/products/Product%20"+item[0]+".png")
                     pic_column.appendChild(pic)
                     r.appendChild(pic_column)
                     const info_column = document.createElement("div")
-                    info_column.setAttribute("class", "col-6")
+                    info_column.setAttribute("class", "col-6 justify-content-center mb-3")
                     const name_row = document.createElement("div")
                     name_row.setAttribute("class", "row")
                     let product_name = document.createElement("h6")
@@ -73,7 +73,7 @@
                     const price_row = document.createElement("div")
                     price_row.setAttribute("class", "row")
                     let unit_price = document.createElement("p")
-                    unit_price.innerText = "S&#36;"+item[2]
+                    unit_price.innerText = "S$"+item[2]
                     price_row.appendChild(unit_price)
                     info_column.appendChild(price_row)
                     const stock_row = document.createElement("div")
@@ -82,13 +82,16 @@
                     stock.innerText = item[4]+" remaining"
                     stock_row.appendChild(stock)
                     info_column.appendChild(stock_row)
-                    r.appendChild(info_column)
+                    let btn_row = document.createElement("div")
+                    btn_row.setAttribute("class", "row justify-content-center align-items-center")
                     let add_cart_btn = document.createElement("button")
                     add_cart_btn.innerText = "Add to Cart"
                     add_cart_btn.setAttribute("type", "button")
                     add_cart_btn.setAttribute("class", "btn btn-secondary")
                     add_cart_btn.setAttribute("onclick", "addCart("+item[0]+", '"+item[1]+"', "+item[2]+")")
-                    r.appendChild(add_cart_btn)
+                    btn_row.appendChild(add_cart_btn)
+                    info_column.appendChild(btn_row)
+                    r.appendChild(info_column)
 
                     document.getElementById("results").appendChild(r)
 
@@ -116,4 +119,5 @@
 <div id="results"></div>
 
 </div>
+<script>search()</script>
 {% endblock %}
