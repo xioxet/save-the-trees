@@ -4,7 +4,7 @@ from getpass import getpass
 mydb = mysql.connector.connect(
     host='localhost',
     user='stt_user',
-    password=getpass(),
+    password='password',
     port='3306',
     database='stt_db',
 )

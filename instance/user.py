@@ -1,7 +1,8 @@
 from instance import mydb, mycursor
 
 def find_username(username):
-    mycursor.execute(f"SELECT * FROM users WHERE username = '{username}'")
+    query = "SELECT * FROM users WHERE username = %s"
+    mycursor.execute(query, (username,))
     data = [row for row in mycursor]
     print(f'data = {data}')
     if len(data) == 0: return None
@@ -9,9 +10,14 @@ def find_username(username):
 
 def add_user(username, password, email):
     insert_user = ("INSERT INTO users"
-                      "(username, password, email)"
-                      "VALUES (%s, %s, %s)")
-    user_params = (username, password, email)
+                      "(username, password, email, role)"
+                      "VALUES (%s, %s, %s, %s)")
+    user_params = (username, password, email, 'user')
     mycursor.execute(insert_user, user_params)
     mydb.commit()
 
+def check_role(username):
+    query = "SELECT role FROM users WHERE username = %s"
+    mycursor.execute(query, (username,))
+    data = [row for row in mycursor]
+    return data[0][0]

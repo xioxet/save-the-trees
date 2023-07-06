@@ -25,14 +25,8 @@
       <div class="header-2">Will you join us today?</div>
     </div>
     <div class="row justify-content-center mt-3">
-      <button type="button" class="btn btn-dark btn-lg mx-2">
+      <a href="{{ url_for('payment_1') }}" class="btn btn-dark btn-lg">
         Donate
-      </button>
-      <button type="button" class="btn btn-dark btn-lg mx-2">
-      <a href="{{ url_for('login') }}" class="btn btn-dark btn-lg mx-2">
-        Log in
       </a>
-<!--        remove the<a></a> codes when if fix size of button-->
-      </button>
   </div>
 {% endblock %}
