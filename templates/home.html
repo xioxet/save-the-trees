@@ -25,56 +25,105 @@
       <div class="header-2">Will you join us today?</div>
     </div>
     <div class="row justify-content-center mt-3">
-      <a href="{{ url_for('payment_1') }}" class="btn btn-dark btn-lg">
-        Donate
-      </a>
       <a href="{{ url_for('login') }}" class="btn btn-dark btn-lg ml-3">
-        Log in
+        Log in to start donating
       </a>
   </div>
 
   <div class="row mt-4 w-75 justify-content-center m-auto">
 
     <div class="col-md-4 w-25">
-      <div class="card">
+      <div class="card card-special">
         <div class="card-body">
           <h5 class="card-title">Events</h5>
-          <p class="card-text">Attend events with like-minded individuals supporting the environmental cause.</p>
+          <p class="card-text card-text-special">Attend events with like-minded individuals supporting the environmental cause.</p>
         </div>
       </div>
     </div>
 
     <div class="col-md-4 w-25">
-      <div class="card">
+      <div class="card card-special">
         <div class="card-body">
           <h5 class="card-title">Merchandise</h5>
-          <p class="card-text">Buy some shirts and hats to show your support.</p>
+          <p class="card-text card-text-special">Buy some shirts and hats to show your support.</p>
         </div>
       </div>
     </div>
 
     <div class="col-md-4 w-25">
-      <div class="card">
+      <div class="card card-special">
         <div class="card-body">
           <h5 class="card-title">Donate</h5>
-          <p class="card-text">Buy your very own trees and send a message alongside it.</p>
+          <p class="card-text card-text-special">Buy your very own trees and send a message alongside it.</p>
         </div>
       </div>
     </div>
   </div>
+  <br>
 
+  <div class="leaderboard">
+    <h4 class="leaderboard-title">Recent donations</h4>
+    {% for entry in entries %}
+    <div class="entry">
+      <h4>{{ entry['name'] }}</h4>
+      <h5>Donated {{ entry['trees_donated'] }} trees.</h5>
+      <div class="message">{{ entry['message'] }}</div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 
 <style>
-  h5 {
-    background-color:rgb(57, 57, 57);
+
+  :root {
+    --header:#198754;
+  }
+
+  .leaderboard {
+    width: 50%;
+    margin: auto;
+    margin-top:20px;
+    border-left: 20px solid var(--header);
+    padding-left:10px;
+  }
+
+  .leaderboard-title {
+    background-color: var(--header);
+    color: white;
+    padding-block: 10px;
+    padding-inline: 20px;
+    width: fit-content;
+    border-radius:5px;
+    font-family:'Trebuchet MS';
+  }
+
+  .entry {
+    background-color: rgb(255, 255, 255);
+    border-radius: 5px;
+    padding:20px;
+    margin-block: 10px;
+  }
+
+  .entry > h5 {
+    color: gray;
+  }
+
+
+  .message {
+    background-color: rgb(244, 244, 244);
+    padding:20px;
+  }
+
+  .card-title {
+    background-color:var(--header);;
     color: white;
     font-family:'Trebuchet MS';
     text-align:center;
     padding-block:10px;
+    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.1));
   }
 
-  .card {
+  .card-special {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -82,7 +131,7 @@
     border:none;
   }
 
-  .card-text {
+  .card-text-special {
     background-color: white;
     padding:20px;
     display: flex;

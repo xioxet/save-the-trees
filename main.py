@@ -29,7 +29,16 @@ app.config['SECRET_KEY'] = token_urlsafe()
 
 @app.route('/')
 def main():
-    return render_template("home.html")
+    leaderboard_entries = list()
+    for order in most_recent_orders(5):
+        firstname, lastname, quantity, message = order[2:6]
+        entry = {
+            'name': f'{firstname} {lastname}',
+            'trees_donated': quantity,
+            'message': message
+        }
+        leaderboard_entries.append(entry)
+    return render_template("home.html", entries=leaderboard_entries)
 
 # BORN TO DIE
 # WORLD IS A FUCK
@@ -76,7 +85,8 @@ def process_payment_trees():
         )
 
         # prepare variables
-        email, fname, lname, qty, message = session["payment_info"]["payment_email"], session["payment_info"]["payment_fname"], session["payment_info"]["payment_lname"], session["payment_info"]["payment_quantity"], session["payment_info"]["payment_message"]
+        email = find_username(get_username())[3]
+        fname, lname, qty, message = session["payment_info"]["payment_fname"], session["payment_info"]["payment_lname"], session["payment_info"]["payment_quantity"], session["payment_info"]["payment_message"]
         if "payment_anonymous" in session["payment_info"].keys():
             anonymous = 1
         else: anonymous = 0
@@ -139,7 +149,6 @@ def contact_form():
     else:
         errors = form.errors
         for field, field_errors in errors.items():
-            print(field, field_errors)
             flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
     return render_template("contact_form.html", form=form)
 
@@ -244,7 +253,6 @@ def login():
         else:
             flash('Please try again.')
             return redirect(url_for('login'))
-    print(form.errors.items())
     return render_template('login.html', form=form)
 
 

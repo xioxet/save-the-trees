@@ -38,3 +38,8 @@ def set_satisfied(id):
     mycursor.execute(sql_query)
     mydb.commit()
 
+def most_recent_orders(num):
+    query = "SELECT * FROM orders WHERE order_anonymous = 0 ORDER BY order_id LIMIT %s"
+    mycursor.execute(query, (num,))
+    data = [row for row in mycursor]
+    return data

@@ -4,7 +4,6 @@ from wtforms.validators import DataRequired, Email, NumberRange, Length
 
 # classes by v.
 class PaymentForm_1(FlaskForm):
-    payment_email = StringField('Email', validators=[DataRequired(), Email()])
     payment_fname = StringField('First Name', validators=[DataRequired()])
     payment_lname = StringField('Last Name', validators=[DataRequired()])
     payment_quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1, max=100)])
