@@ -37,3 +37,4 @@ def set_satisfied(id):
     sql_query = f"UPDATE orders SET order_satisfied = 1 WHERE order_id = {id}"
     mycursor.execute(sql_query)
     mydb.commit()
+

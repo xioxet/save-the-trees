@@ -1,9 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
 from secrets import token_urlsafe
 from product_form import SearchForm
-from functools import wraps
-from datetime import datetime
-
 #
 from payment import *
 from contact import *
@@ -21,6 +18,7 @@ from instance.user import *
 import stripe
 #
 from email_handler import *
+from roles import *
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -41,52 +39,6 @@ def main():
 
 stripe.api_key = 'sk_test_51NPy8eJ7r4cbLfySEOd0sJelRzCcgjyxKybeDI85fZXUGlG00dJrAoaIorSkkU4h62RQv1j9E6DaKIEfcg72q2ig00uUzPf1g2'
 stripe_publishable_key = 'pk_test_51NPy8eJ7r4cbLfySvMseD9DbVTzgG2sUib1rl3jdtMKRdVQcGgNodVERYpGyZRIcvJKAdHKYXjUZhbBAa2jo1fpP00iiH4UNhC'
-
-role_values = {
-    "admin":2,
-    "user":1,
-    "guest":0
-}
-
-def check_privileges(role, role_required):
-    return role_values[role] >= role_values[role_required]
-
-def get_username():
-    if 'username' not in session:
-        session['username'] = 'guest'
-    return session['username']
-
-def role_required(role_required, fail_redirect="main", flash_message=None):
-    def decorator(func):
-        @wraps(func)
-        def decorated_function(*args, **kwargs):
-            username = get_username()
-            role = check_role(username)
-            if not check_privileges(role, role_required):
-                if flash_message is not None:
-                    flash(flash_message)
-                return redirect(url_for(fail_redirect))
-            print(username, username)
-            return func(*args, **kwargs)
-        return decorated_function
-    return decorator
-
-def fresh_login_required(timeout_minutes=5):
-    def decorator(func):
-        @wraps(func)
-        def decorated_function(*args, **kwargs):
-            if get_username() != 'guest':
-                # Check if the user's last action time is within the allowed timeout
-                last_action_time = session.get('last_action_time')
-                if last_action_time is not None:
-                    elapsed_time = datetime.now() - last_action_time
-                    if elapsed_time.total_seconds() < timeout_minutes * 60:
-                        session['last_action_time'] = datetime.now()
-                        return func(*args, **kwargs)
-            session.clear()
-            return redirect(url_for('login'))
-        return decorated_function
-    return decorator
 
 # payment functions by v.s
 @app.route('/payment_1', methods=['GET', 'POST'])
@@ -148,6 +100,9 @@ def get_cart():
 
 @app.route('/cart_checkout', methods=['GET','POST'])
 def cart_checkout():
+    if 'stripe_price' not in session:
+        flash('Error found.')
+        return redirect(url_for('main'))
     return render_template('checkout.html', publishable_key=stripe_publishable_key, stripe_price=session['stripe_price'])
 
 @app.route('/process_checkout', methods=['GET', 'POST'])
@@ -204,9 +159,10 @@ def contact_view(replied):
     return render_template('contact_view.html', data=data, replied=replied)
 
 # wew lad.
+@app.route('/orders_view/')
 @app.route('/orders_view/<string:satisfied>')
 @role_required('admin')
-def orders_view(satisfied):
+def orders_view(satisfied='false'):
     satisfied = satisfied.lower() == 'true'
     data = [tup[:-1] for tup in get_satisfied_orders(satisfied)]
     return render_template('orders_view.html', data=data, satisfied=satisfied)
@@ -228,12 +184,13 @@ def orders_satisfy(id):
 @app.route('/contact_reply/<id>', methods=['GET', 'POST'])
 @role_required('admin')
 def contact_reply(id):
+
     data = search_contact(id)
     form = ContactResponseForm()
     message = data[0][5]
-    category = data[0][4]
     email = data[0][1]
     name = f'{data[0][2]} {data[0][3]}'
+
     if form.validate_on_submit(): 
         response = request.form["contact_response"]
         set_responded(id, response)

@@ -9,7 +9,7 @@
     {% with messages = get_flashed_messages() %}
     {% if messages %}
       <br><br>
-      <div class="alert alert-success w-25 m-auto">
+      <div class="alert alert-dark alert-dismissible w-25 m-auto">
           {% for message in messages %}
             {{ message }}
           {% endfor %}

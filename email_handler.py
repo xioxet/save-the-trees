@@ -30,9 +30,3 @@ def send_email(receiver_email, subject, message, sender_email=sender_email, send
         print('An error occurred while sending the email:', str(e))
     finally:
         server.quit()
-
-receiver_email = 'qqqdyz@gmail.com'
-subject = 'Hello from Python!'
-message = 'This is a test email sent using Python.'
-
-send_email(sender_email, sender_password, receiver_email, subject, message)
