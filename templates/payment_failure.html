@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 w-25">
+  <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading">Payment Unsuccessful!</h4>
+      <p>We apologize for any inconvenience caused.</p>
+      <a class="btn btn-primary" href="/" role="button">Return to Home</a>
+      <a class="btn btn-primary" href="{{url_for('payment_1')}}" role="button">Try again</a>
+  </div>
+</div>
+{% endblock %}

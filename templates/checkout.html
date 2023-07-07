@@ -1,29 +1,46 @@
 {% extends "form_base.html" %}
 
 {% block form %}
-<form action="/process_payment" class="payment-form" method="post">
-    <h1>Payment details</h1><br>
-    <table class="table">
-        <tr>
-            <td>Quantity</td><td>{{payment_quantity}}</td>
-        </tr>
-        <tr>
-            <td>Amount payable</td><td>{{payment_amount}}</td>
-        </tr>
+<form action="/process_checkout" class="payment-form" method="post">
+    <h1>Checkout</h1><br>
+    <table class="table" id="checkout_table">
+        <tr><th>#</th><th>Item</th><th>Unit price</th><th>Quantity</th><th>Total price</th></tr>
     </table>
     <script src="https://checkout.stripe.com/checkout.js" class="stripe-button m-auto"  id="xx"
             data-key="{{ publishable_key }}"
             data-description="Checkout"
-            data-amount="{{ payment_amount_stripe }}"
+            data-amount={{stripe_price}}
             data-locale="auto">
     </script>
-    <input type="hidden" name="amount" value="{{ payment_amount_stripe }}">
+    <input type="hidden" name="amount" id="amount_input" value={{stripe_price}}>
   </form>
 
 <script>
-    var amount = document.getElementById('xx').dataset.amount;
+
     console.log('x');
-    console.log(amount);
+    var amount = 0
+
+    try {cart = JSON.parse(localStorage["cart"])}
+        catch {
+            localStorage["cart"] = []
+            cart=[]
+        }
+
+        var table = document.getElementById('checkout_table');
+
+    for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
+        var rowNumber = i + 1;
+
+        var row = document.createElement('tr');
+
+        row.innerHTML = '<td>' + rowNumber + '</td><td>' + item[1] + '</td><td>' + '$' + item[2].toFixed(2) + '</td><td>' + item[3] + '</td><td>' + '$' + (item[2] * item[3]).toFixed(2) ;
+
+        console.log(row);
+        table.appendChild(row);
+    }
+
+    console.log(cart);
     var stripe = Stripe('{{ publishable_key }}');
     var elements = stripe.elements();
 

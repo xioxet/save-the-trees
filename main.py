@@ -1,7 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session
-from flask_login import LoginManager, login_user
+from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
 from secrets import token_urlsafe
 from product_form import SearchForm
+from functools import wraps
 
 #
 from payment import *
@@ -14,9 +14,10 @@ from secrets import token_urlsafe
 from instance.contact import *
 from instance.orders import *
 import instance.products as product_server
-from json import dumps
+from json import dumps, loads
 #
 from instance.user import *
+import stripe
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -24,44 +25,128 @@ log.setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = token_urlsafe()
-login_manager = LoginManager()
-login_manager.init_app(app)
-
 
 @app.route('/')
 def main():
     return render_template("home.html")
 
+# BORN TO DIE
+# WORLD IS A FUCK
+# 鬼神 Kill Em All 1989
+# I am trash man
+# 410,757,864,530 DEAD COPS
 
+stripe.api_key = 'sk_test_51NPy8eJ7r4cbLfySEOd0sJelRzCcgjyxKybeDI85fZXUGlG00dJrAoaIorSkkU4h62RQv1j9E6DaKIEfcg72q2ig00uUzPf1g2'
+stripe_publishable_key = 'pk_test_51NPy8eJ7r4cbLfySvMseD9DbVTzgG2sUib1rl3jdtMKRdVQcGgNodVERYpGyZRIcvJKAdHKYXjUZhbBAa2jo1fpP00iiH4UNhC'
 
-# payment functions by v.
+role_values = {
+    "admin":2,
+    "user":1,
+    "guest":0
+}
+
+def check_privileges(role, role_required):
+    return role_values[role] >= role_values[role_required]
+
+def get_username():
+    if 'username' not in session:
+        session['username'] = 'guest'
+    return session['username']
+
+def role_required(role_required, fail_redirect="main", flash_message=None):
+    def decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            username = get_username()
+            role = check_role(username)
+            if not check_privileges(role, role_required):
+                if flash_message is not None:
+                    flash(flash_message)
+                return redirect(url_for(fail_redirect))
+            print(username, username)
+            return func(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# payment functions by v.s
 @app.route('/payment_1', methods=['GET', 'POST'])
+@role_required('user', 'login', "Please log in.")
 def payment_1():
     form = PaymentForm_1()
 
     if form.validate_on_submit():
         session['payment_info'] = request.form
-        print(session['payment_info'])
         return redirect(url_for('payment_2'))
 
     return render_template("payment_step1.html", form=form)
 
-
 @app.route('/payment_2', methods=['GET', 'POST'])
 def payment_2():
-    form = PaymentForm_2()
+    if 'payment_info' not in session:
+        flash('Access not allowed.')
+        return redirect(url_for('main'))
+    payment_quantity = int(session['payment_info']['payment_quantity'])
+    payment_amount = f"{payment_quantity * 5:.2f}"
+    payment_amount_stripe = payment_quantity * 5 * 100
+    return render_template('payment_step2.html', publishable_key=stripe_publishable_key, payment_quantity=payment_quantity, payment_amount_stripe=payment_amount_stripe, payment_amount=payment_amount)
 
-    if form.validate_on_submit():
+@app.route('/process_payment', methods=['POST'])
+def process_payment_trees():
+    # Retrieve the necessary information from the request
+    token = request.form['stripeToken']
+    amount = request.form['amount']
+
+    try:
+        charge = stripe.Charge.create(
+            amount=int(amount),
+            currency='sgd',
+            source=token,
+            description='Payment for Flask App'
+        )
+
+        # prepare variables
         email, fname, lname, qty, message = session["payment_info"]["payment_email"], session["payment_info"]["payment_fname"], session["payment_info"]["payment_lname"], session["payment_info"]["payment_quantity"], session["payment_info"]["payment_message"]
         if "payment_anonymous" in session["payment_info"].keys():
             anonymous = 1
         else: anonymous = 0
+
         add_order(email, fname, lname, qty, message, anonymous)
-        flash('Your payment has been received and will be processed. Thank you!')
-        return redirect('/')
+        return render_template('payment_success.html', charge=charge)
+    
+    except stripe.error.CardError as e:
+        return render_template('payment_error.html', error_message=e)
+    
+# almost identical to above function but Uhhhhhhhhhh
+@app.route('/cart_get', methods=['GET','POST'])
+def get_cart():
+    cart_data = loads(request.json.get("cart"))
+    # calculate cost
+    stripe_price = 0
+    for product in cart_data:
+        stripe_price += product[2] * 100 * product[3]
+    session['stripe_price'] = stripe_price
+    return redirect(url_for('cart_checkout'))
 
-    return render_template("payment_step2.html", form=form)
+@app.route('/cart_checkout', methods=['GET','POST'])
+def cart_checkout():
+    return render_template('checkout.html', publishable_key=stripe_publishable_key, stripe_price=session['stripe_price'])
 
+@app.route('/process_checkout', methods=['GET', 'POST'])
+def process_checkout():
+    token = request.form['stripeToken']
+    amount = request.form['amount']
+    try:
+        charge = stripe.Charge.create(
+            amount=int(amount),
+            currency='sgd',
+            source=token,
+            description='Payment for Flask App'
+        )
+        return render_template('payment_success.html', charge=charge)
+    
+    except stripe.error.CardError as e:
+        return render_template('payment_error.html', error_message=e)
+    
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact_form():
@@ -87,6 +172,7 @@ def contact_form():
 
 # i am SO SORRY FOR THIS ENTIRE FUNCTION...
 @app.route('/contact_view/<string:replied>')
+@role_required('admin')
 def contact_view(replied):
     replied = replied.lower() == 'true'  # Convert the string to a boolean value
     if replied:
@@ -101,12 +187,14 @@ def contact_view(replied):
 
 # wew lad.
 @app.route('/orders_view/<string:satisfied>')
+@role_required('admin')
 def orders_view(satisfied):
     satisfied = satisfied.lower() == 'true'
     data = [tup[:-1] for tup in get_satisfied_orders(satisfied)]
     return render_template('orders_view.html', data=data, satisfied=satisfied)
 
 @app.route('/orders_satisfy/<id>', methods=['GET', 'POST'])
+@role_required('admin')
 def orders_satisfy(id):
     data = search_orders(id)
     email = data[0][1]
@@ -120,6 +208,7 @@ def orders_satisfy(id):
     return render_template('orders_satisfy.html', email=email, name=name, quantity=quantity, form=form)
 
 @app.route('/contact_reply/<id>', methods=['GET', 'POST'])
+@role_required('admin')
 def contact_reply(id):
     data = search_contact(id)
     form = ContactResponseForm()
@@ -134,6 +223,7 @@ def contact_reply(id):
     return render_template('contact_response.html', message=message, email=email, name=name, form=form)
 
 @app.route('/contact_delete/<id>', methods=['GET', 'POST'])
+@role_required('admin')
 def contact_delete(id):
     data = search_contact(id)
     message = data[0][5]
@@ -148,12 +238,6 @@ def contact_delete(id):
     else:
         return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
-#dominic part
-
-@login_manager.user_loader
-def load_user(username):
-    return users.get(username)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -161,13 +245,18 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-        user = find_username(username)
-        if user:
-            if user[2] == password:
-                print('success')
+        user_details = find_username(username)
+        if user_details:
+            if password == user_details[2]:
+                session['user_id'] = user_details[0]
+                session['username'] = user_details[1]
+                print(session['user_id'], session['username'])
+                if check_role(session['username']) == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                return redirect(url_for('dashboard'))
         else:
-            print('failure')
-        return redirect(url_for('main'))
+            flash('Please try again.')
+            return redirect(url_for('login'))
     print(form.errors.items())
     return render_template('login.html', form=form)
 
@@ -184,6 +273,22 @@ def signup():
             add_user(username, password, email)
             return redirect(url_for('main'))
     return render_template('signup.html', form=form)
+
+@app.route('/dashboard')
+@role_required('user', fail_redirect="login", flash_message="Please log in.")
+def dashboard():
+    return render_template('dashboard.html', username=get_username())
+
+@app.route('/admin_dashboard')
+@role_required('admin')
+def admin_dashboard():
+    return render_template('admindashboard.html', username=get_username())
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('Logged out successfully.')
+    return redirect(url_for('main'))
 
 #joef
 from instance import mydb, mycursor
