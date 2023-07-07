@@ -311,6 +311,8 @@ def signup():
 def dashboard():
     if 'username' in session:
         return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
+    elif 'username' in session and session['role'] == 'admin':
+        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_user.html')
     else:
         return redirect(url_for('login'))
 
