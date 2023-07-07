@@ -238,6 +238,16 @@ def contact_delete(id):
     else:
         return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
+#dominic
+@login_manager.user_loader
+def load_user(user_id):
+    return users.get(user_id)
+
+def check_privileges(role, role_required):
+    if role is None or role_required is None:
+        return False
+    return role_values.get(role, 0) >= role_values.get(role_required, 0)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -250,8 +260,8 @@ def login():
             if password == user_details[2]:
                 session['user_id'] = user_details[0]
                 session['username'] = user_details[1]
-                print(session['user_id'], session['username'])
-                if check_role(session['username']) == 'admin':
+                session['role'] = 'admin' if user_details[0] == 1 else 'user'
+                if session['role'] == 'admin':
                     return redirect(url_for('admin_dashboard'))
                 return redirect(url_for('dashboard'))
         else:
@@ -277,18 +287,24 @@ def signup():
 @app.route('/dashboard')
 @role_required('user', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
-    return render_template('dashboard.html', username=get_username())
+    if 'username' in session:
+        return render_template('dashboard.html', username=session['username'])
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/admin_dashboard')
 @role_required('admin')
 def admin_dashboard():
-    return render_template('admindashboard.html', username=get_username())
+    if 'username' in session and session['role'] == 'admin':
+        return render_template('admindashboard.html', username=session['username'])
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/logout')
 def logout():
-    session.pop('user_id', None)
-    flash('Logged out successfully.')
+    session.clear()
     return redirect(url_for('main'))
+
 
 #joef
 from instance import mydb, mycursor
