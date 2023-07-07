@@ -1,33 +1,28 @@
 {% extends "base.html" %}
-{% block title %}PokeImpact - Dashboard{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-    </head>
-    <body>
-            <div class="navbar-right">
-        <span class="navbar-text">Welcome, {{ username }}!</span>
+ {% include navbar_template %}
+  <link rel="stylesheet" href='static/home.css'>
+  <div class="home_body">
+    <img src="{{url_for('static', filename='images/vector_bg.png')}}">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <br><br>
+      <div class="alert alert-success w-25 m-auto">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
+    <div class="row">
+      <div class="header">
+        <span>S</span><span>A</span><span>V</span><span>E</span> <span>T</span><span>H</span><span>E</span> <span>T</span><span>R</span><span>E</span><span>E</span><span>S</span>
+      </div>
     </div>
-        <section class="home" id="home">
-            <div class="container">
-                <div class="text-box">
-                    <h1>STT</h1>
-                    <h3>Save trees</h3>
-                                               <li><a  href="/logout">Sign Out</a></li>
-                </div>
-            </div>
-        </section>
-        <section title="about-us" class="about-us" id="about-us">
-            <p class="home_page_store_header">About Us</p>
+        <span class="navbar-text">Welcome, {{ username }}!</span><br>
 
-
-            </div>
-        </section>
-        <section id="banner2" class="section-m1">
-            <h2>Visit our amazing stores</h2>
+    <a href="/logout" target="_blank">Logout</a>
         </section>
     </body>
 {% endblock %}

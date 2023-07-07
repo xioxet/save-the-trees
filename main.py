@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 from secrets import token_urlsafe
 from product_form import SearchForm
 from functools import wraps
+from datetime import datetime
 
 #
 from payment import *
@@ -65,6 +66,27 @@ def role_required(role_required, fail_redirect="main", flash_message=None):
                 return redirect(url_for(fail_redirect))
             print(username, username)
             return func(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def fresh_login_required(timeout_minutes=5):
+    def decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            if current_user.is_authenticated:
+                # Check if the user's last action time is within the allowed timeout
+                last_action_time = session.get('last_action_time')
+                if last_action_time is not None:
+                    elapsed_time = datetime.now() - last_action_time
+                    if elapsed_time.total_seconds() < timeout_minutes * 60:
+                        # Update the last action time
+                        session['last_action_time'] = datetime.now()
+                        return func(*args, **kwargs)
+
+            # User is not logged in or exceeded the timeout, log them out
+            logout_user()
+            session.clear()
+            return redirect(url_for('login'))
         return decorated_function
     return decorator
 
@@ -285,19 +307,25 @@ def signup():
     return render_template('signup.html', form=form)
 
 @app.route('/dashboard')
-@role_required('user', fail_redirect="login", flash_message="Please log in.")
+@fresh_login_required
+@role_required('user' or 'admin', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
     if 'username' in session:
-        return render_template('dashboard.html', username=session['username'])
+        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
     else:
         return redirect(url_for('login'))
+
 
 @app.route('/admin_dashboard')
 @role_required('admin')
 def admin_dashboard():
     if 'username' in session and session['role'] == 'admin':
-        return render_template('admindashboard.html', username=session['username'])
+        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_user.html')
     else:
+        logout_user()  # Log out the user
+        session.pop('username', None)  # Clear the 'username' session variable
+        session.pop('role', None)  # Clear the 'role' session variable
+        flash('You do not have permission to access the admin dashboard.')
         return redirect(url_for('login'))
 
 @app.route('/logout')
