@@ -19,6 +19,8 @@ from json import dumps, loads
 #
 from instance.user import *
 import stripe
+#
+from email_handler import *
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -73,18 +75,14 @@ def fresh_login_required(timeout_minutes=5):
     def decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
-            if current_user.is_authenticated:
+            if get_username() != 'guest':
                 # Check if the user's last action time is within the allowed timeout
                 last_action_time = session.get('last_action_time')
                 if last_action_time is not None:
                     elapsed_time = datetime.now() - last_action_time
                     if elapsed_time.total_seconds() < timeout_minutes * 60:
-                        # Update the last action time
                         session['last_action_time'] = datetime.now()
                         return func(*args, **kwargs)
-
-            # User is not logged in or exceeded the timeout, log them out
-            logout_user()
             session.clear()
             return redirect(url_for('login'))
         return decorated_function
@@ -114,7 +112,6 @@ def payment_2():
 
 @app.route('/process_payment', methods=['POST'])
 def process_payment_trees():
-    # Retrieve the necessary information from the request
     token = request.form['stripeToken']
     amount = request.form['amount']
 
@@ -185,7 +182,6 @@ def contact_form():
         flash('Your inquiry has been received! We will reply shortly.')
         return redirect(url_for('main'))
     else:
-        # If form validation fails, display error messages to the user
         errors = form.errors
         for field, field_errors in errors.items():
             print(field, field_errors)
@@ -196,7 +192,7 @@ def contact_form():
 @app.route('/contact_view/<string:replied>')
 @role_required('admin')
 def contact_view(replied):
-    replied = replied.lower() == 'true'  # Convert the string to a boolean value
+    replied = replied.lower() == 'true'  
     if replied:
         data = list()
         for tup in get_contact(replied=replied):
@@ -235,12 +231,17 @@ def contact_reply(id):
     data = search_contact(id)
     form = ContactResponseForm()
     message = data[0][5]
+    category = data[0][4]
     email = data[0][1]
     name = f'{data[0][2]} {data[0][3]}'
     if form.validate_on_submit(): 
-        print(request.form["contact_response"])
-        set_responded(id, request.form["contact_response"])
+        response = request.form["contact_response"]
+        set_responded(id, response)
         flash("You have successfully responded to the message!")
+        send_email(email, 
+                   f"Response from Save The Trees", 
+                   f"""Your contact submission: {message}:\nOur response: {response}
+                    """)
         return redirect('/contact_view/false')
     return render_template('contact_response.html', message=message, email=email, name=name, form=form)
 
@@ -260,10 +261,7 @@ def contact_delete(id):
     else:
         return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
-#dominic
-@login_manager.user_loader
-def load_user(user_id):
-    return users.get(user_id)
+
 
 def check_privileges(role, role_required):
     if role is None or role_required is None:
@@ -303,7 +301,7 @@ def signup():
             print("user already found")
         else:
             add_user(username, password, email)
-            return redirect(url_for('main'))
+            return redirect(url_for('login'))
     return render_template('signup.html', form=form)
 
 @app.route('/dashboard')
@@ -323,9 +321,6 @@ def admin_dashboard():
     if 'username' in session and session['role'] == 'admin':
         return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_user.html')
     else:
-        logout_user()  # Log out the user
-        session.pop('username', None)  # Clear the 'username' session variable
-        session.pop('role', None)  # Clear the 'role' session variable
         flash('You do not have permission to access the admin dashboard.')
         return redirect(url_for('login'))
 
