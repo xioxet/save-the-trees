@@ -307,8 +307,7 @@ def signup():
     return render_template('signup.html', form=form)
 
 @app.route('/dashboard')
-@fresh_login_required
-@role_required('user' or 'admin', fail_redirect="login", flash_message="Please log in.")
+@role_required('user', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
     if 'username' in session:
         return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
@@ -317,7 +316,7 @@ def dashboard():
 
 
 @app.route('/admin_dashboard')
-@role_required('admin')
+@role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def admin_dashboard():
     if 'username' in session and session['role'] == 'admin':
         return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_user.html')
