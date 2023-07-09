@@ -262,12 +262,37 @@ def signup():
     if form.validate_on_submit():
         username, password, email = form.username.data, form.password.data, form.email.data
         user = find_username(username)
-        if user:
-            print("user already found")
+        email_user = find_email(email)
+        if user or email_user:
+            flash("Credentials not unique.")
+            return redirect(url_for('signup'))
+
         else:
-            add_user(username, password, email)
+            verification_token = token_urlsafe()
+            add_verification_token(verification_token, username, password, email)
+            send_email(email, "Verification email for Save The Trees", f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
+            flash("You have been sent a verification link in an email.")
             return redirect(url_for('login'))
+    else:
+        for error in form.errors.items():
+            flash(error[1])
+            return redirect(url_for('signup'))
     return render_template('signup.html', form=form)
+
+@app.route('/signup_verification/')
+@app.route('/signup_verification/<token>', methods=['GET', 'POST'])
+def verification_token(token):
+    if token is None:
+        token = ""
+    try:
+        verify_token(token)
+        flash('Verification successful!')
+        return redirect(url_for('login'))
+    except Exception as e: 
+        flash(str(e))
+        return redirect(url_for('main'))
+    
+    
 
 @app.route('/dashboard')
 @role_required('user', fail_redirect="login", flash_message="Please log in.")

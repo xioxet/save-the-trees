@@ -8,8 +8,7 @@
     <img src="{{url_for('static', filename='images/vector_bg.png')}}">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-      <br><br>
-      <div class="alert alert-dark alert-dismissible w-25 m-auto">
+      <div class="alert alert-dark w-25 m-auto dismissible" onclick="dismiss(this)">
           {% for message in messages %}
             {{ message }}
           {% endfor %}
@@ -73,73 +72,10 @@
   </div>
 </div>
 
-<style>
-
-  :root {
-    --header:#198754;
+<script>
+  function dismiss(div) {
+    console.log(div);
+    div.style.display = "none";
   }
-
-  .leaderboard {
-    width: 50%;
-    margin: auto;
-    margin-top:20px;
-    border-left: 20px solid var(--header);
-    padding-left:10px;
-  }
-
-  .leaderboard-title {
-    background-color: var(--header);
-    color: white;
-    padding-block: 10px;
-    padding-inline: 20px;
-    width: fit-content;
-    border-radius:5px;
-    font-family:'Trebuchet MS';
-  }
-
-  .entry {
-    background-color: rgb(255, 255, 255);
-    border-radius: 5px;
-    padding:20px;
-    margin-block: 10px;
-  }
-
-  .entry > h5 {
-    color: gray;
-  }
-
-
-  .message {
-    background-color: rgb(244, 244, 244);
-    padding:20px;
-  }
-
-  .card-title {
-    background-color:var(--header);;
-    color: white;
-    font-family:'Trebuchet MS';
-    text-align:center;
-    padding-block:10px;
-    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.1));
-  }
-
-  .card-special {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background-color: rgba(0,0,0,0.0);
-    border:none;
-  }
-
-  .card-text-special {
-    background-color: white;
-    padding:20px;
-    display: flex;
-    flex-direction: column;
-    height: 80%;
-    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.1));
-    border-radius: 5px;
-  }
-
-</style>
+</script>
 {% endblock %}
