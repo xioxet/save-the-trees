@@ -228,7 +228,6 @@ def contact_delete(id):
         return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
 
-
 def check_privileges(role, role_required):
     if role is None or role_required is None:
         return False
@@ -243,7 +242,7 @@ def login():
         password = form.password.data
         user_details = find_username(username)
         if user_details:
-            if password == user_details[2]:
+            if bcrypt.checkpw(password.encode('utf-8'), user_details[2].encode('utf-8')):
                 session['user_id'] = user_details[0]
                 session['username'] = user_details[1]
                 session['role'] = 'admin' if user_details[0] == 1 else 'user'
@@ -269,7 +268,9 @@ def signup():
 
         else:
             verification_token = token_urlsafe()
-            add_verification_token(verification_token, username, password, email)
+            salt = bcrypt.gensalt()
+            password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
+            add_verification_token(verification_token, username, password_hash, email)
             send_email(email, "Verification email for Save The Trees", f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
             flash("You have been sent a verification link in an email.")
             return redirect(url_for('login'))

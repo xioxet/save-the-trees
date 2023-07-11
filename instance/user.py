@@ -1,6 +1,6 @@
 from instance import mydb, mycursor
 import datetime
-from secrets import token_urlsafe
+import bcrypt
 
 token_expiration_time = datetime.timedelta(minutes=5)
 
@@ -63,4 +63,17 @@ def verify_token(token):
         mydb.commit()
     
 
+def update_passwords():
+    query = "SELECT * FROM users"
+    mycursor.execute(query)
+    data = [row for row in mycursor]
+    for row in data:
+        user_id = row[0]
+        password = row[2]
+        salt = bcrypt.gensalt()
+        hash = bcrypt.hashpw(password.encode('utf-8'), salt)
+        query = "UPDATE users SET password = %s WHERE user_id = %s"
+        values = (hash.decode('utf-8'), user_id)
+        mycursor.execute(query, values)
+        mydb.commit()
 

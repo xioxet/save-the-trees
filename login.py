@@ -28,7 +28,3 @@ class User:
     def get_id(self):
         return self.username
 
-
-users = {
-    "username": "password"
-}
