@@ -3,10 +3,15 @@
 {% block content %}
 <div class="container mt-5 w-25">
   <div class="alert alert-danger" role="alert">
-      <h4 class="alert-heading">Payment Unsuccessful!</h4>
-      <p>We apologize for any inconvenience caused.</p>
+      <h4 class="alert-heading">Oops! Something went wrong.</h4>
+      <p>Maybe our prices changed while you were checking out, or someone bought our merchandise before you.</p>
+      <p>Please clear the cart and try again.</p>
+      <a class="btn btn-primary" href="#" role="button" id="cart_clear_btn" onclick="clear_cart()">Clear Cart</a>
       <a class="btn btn-primary" href="/" role="button">Return to Home</a>
       <a class="btn btn-primary" href="{{url_for('payment_1')}}" role="button">Try again</a>
   </div>
 </div>
+<script>
+
+</script>
 {% endblock %}

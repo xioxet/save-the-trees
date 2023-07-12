@@ -27,16 +27,21 @@
             <li class="nav-item">
                 <a class="nav-link" href="/payment_1">Donate</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/products">Merchandise</a>
+            </li>
         </ul>
     </div>
-    <button type="button" id="cartbtn" class="btn btn-secondary navbar-right navbar-btn" data-bs-toggle="popover"
+    <button type="button" id="cartbtn" class="btn btn-secondary navbar-right navbar-btn mr-4" data-bs-toggle="popover"
             data-bs-placement="left" data-bs-custom-class="cart_popover" title="Cart" data-bs-container="body" data-bs-content='Test'
             onclick="loadCart()" onload="">Cart</button>
+    <!-- <button type="button" class="btn btn-primary navbar-right navbar-btn">Checkout</button> -->
 </nav>
 
 {% block content %}{% endblock %}
 
 <script>
+
 
     const cart_popover = bootstrap.Popover.getOrCreateInstance('#cartbtn', {html: true})
     function load_anchors(){
@@ -57,6 +62,7 @@
         checkoutButton.classList.add("btn", "btn-primary")
         checkoutButton.setAttribute("onclick", "checkout()");
         checkoutButton.innerText = "Checkout";
+
         document.getElementsByClassName('popover-body')[0].appendChild(checkoutButton);
     }
 
@@ -68,11 +74,16 @@
             localStorage["cart"] = []
             cart=[]
         }
+        console.log(cart)
         document.getElementById("cartbtn").setAttribute("data-bs-content", "")
         const serializer = new XMLSerializer();
         let sr = ""
         for(i in cart){
             item = cart[i]
+            for(i=0; i<cart.length; i++){
+                item[i] = new Option(item[i]).innerText
+                console.log(item[i])
+            }
             console.log(item)
             const r = document.createElement("div")
             r.setAttribute("class", "row")
@@ -90,7 +101,7 @@
             add_anchor.setAttribute("role", "button")
             add_anchor.setAttribute("id", "add"+item[0])
             add_anchor.setAttribute("class", "add_anchor")
-            //add_anchor.addEventListener("click", countUp(item[0]))
+            //add_anchor.addEventListener("click", countUp(item[0])
             let add_button = document.createElement("img")
             add_button.setAttribute("src", "/static/images/add_button.png")
             add_anchor.appendChild(add_button)
@@ -101,6 +112,12 @@
             count.setAttribute("class", "count-text")
             count.innerText = item[3]
             count_column.appendChild(count)
+
+            let max = document.createElement("span")
+            max.setAttribute("id", "max"+item[0])
+            max.setAttribute("class", "max-text")
+            max.innerText = "/"+item[4]
+            count_column.appendChild(max)
 
             let sub_anchor = document.createElement("a")
             sub_anchor.setAttribute("role", "button")
@@ -157,11 +174,22 @@
             cart=[]
         }
         console.log(cart)
-        for(i = 0; i < cart.length; i++){
+        for(let i = 0; i < cart.length; i++){
             item = cart[i]
+            for(let j=0; j<item.length; j++){
+                item[j] = new Option(item[j]).innerText
+                if (j != 1) {
+                    item[j] = Number(item[j])
+                }
+            }
             if(product_id == item[0]){
                 console.log("countUp "+product_id)
-                cart[i] = [product_id, item[1], item[2], item[3]+1]
+                if(item[3] < item[4]){
+                    cart[i] = [product_id, item[1], item[2], item[3]+1, item[4]]
+                }
+                else{
+                    cart[i] = [product_id, item[1], item[2], item[4], item[4]]
+                }
                 const count_text = document.getElementById("count"+product_id)
                 if(count_text != null){count_text.innerText = cart[i][3]}
                 break
@@ -181,6 +209,12 @@
         console.log(cart)
         for(i = 0; i < cart.length; i++){
             item = cart[i]
+            for(let j=0; j<item.length; j++){
+                item[j] = new Option(item[j]).innerText
+                if (j != 1) {
+                    item[j] = Number(item[j])
+                }
+            }
             if(product_id == item[0]){
             console.log("countDown "+product_id)
                 if(item[3]-1 < 1){
@@ -188,7 +222,7 @@
                     document.getElementById("product"+item[0]).remove() // Remove from cart display
                 }
                 else{
-                    cart[i] = [product_id, item[1], item[2], item[3]-1]
+                    cart[i] = [product_id, item[1], item[2], item[3]-1, item[4]]
                     const count_text = document.getElementById("count"+product_id)
                     if(count_text != null){count_text.innerText = cart[i][3]}
                 }
@@ -199,6 +233,10 @@
         if(cart.length == 0){
             cart_popover.hide()
         }
+    }
+    function clear_cart(){
+        localStorage["cart"] = ""
+        document.getElementById("cart_clear_btn").innerText = "Cleared!"
     }
 </script>
 </body>

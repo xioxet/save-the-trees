@@ -1,12 +1,14 @@
 from instance import mydb, mycursor
-
 # by v.
 
+
 def add_order(order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous):
+    mycursor.execute("select count(*) from orders")
+    order_id = mycursor.fetchone()[0]
     insert_order = ("INSERT INTO orders"
-                      "(order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous, order_satisfied)"
-                      "VALUES (%s, %s, %s, %s, %s, %s, %s)")
-    order_params = (order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous, 0)
+                    "(order_id, order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous, order_satisfied)"
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+    order_params = (order_id, order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous, 0)
     print(insert_order, order_params)
     mycursor.execute(insert_order, order_params)
     mydb.commit()

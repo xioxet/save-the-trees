@@ -26,7 +26,7 @@
     try {cart = JSON.parse(localStorage["cart"])}
         catch {
             localStorage["cart"] = []
-            cart=[]
+            window.location.replace("/products")
         }
 
         var table = document.getElementById('checkout_table');
@@ -74,8 +74,12 @@
         hiddenInput.setAttribute('type', 'hidden');
         hiddenInput.setAttribute('name', 'stripeToken');
         hiddenInput.setAttribute('value', token.id);
+        const cart_input = document.createElement('input');
+        cart_input.setAttribute('type', 'hidden');
+        cart_input.setAttribute('name', 'cart');
+        cart_input.setAttribute('value', localStorage['cart']);
         form.appendChild(hiddenInput);
-        form.appendChild(hiddenInputValue);
+        form.appendChild(cart_input);
         form.submit();
     }
 </script>

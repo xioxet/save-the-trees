@@ -3,7 +3,7 @@
 {% block form %}
 <script>
 
-    function addCart(product_id, prod_name, price){
+    function addCart(product_id, prod_name, price, max){
         console.log("Add cart "+product_id.toString())
         let cart=null
         try{cart = JSON.parse(localStorage["cart"])}
@@ -15,16 +15,27 @@
         for(i in cart){
             item = cart[i]
             if(product_id == item[0]){
-                cart[i] = [product_id, prod_name, price, item[3]+1]
+                if(item[3] < max){
+                    cart[i] = [Number(product_id), prod_name, Number(price), Number(item[3])+1, Number(max)]
+                }
+                else{
+                    cart[i] = [Number(product_id), prod_name, Number(price), Number(max), Number(max)]
+                }
                 new_item = false
                 break
             }
         }
         if(new_item){
-            cart.push([product_id, prod_name, price, 1])
+            cart.push([Number(product_id), prod_name, Number(price), 1, Number(max)])
         }
         localStorage["cart"] = JSON.stringify(cart)
         loadCart()
+
+        if (document.getElementById("checkoutButton") != null){
+            console.log("Enable checkout button");
+            document.getElementById("checkoutButton").removeAttribute("disabled")
+        }
+
     }
 
 
@@ -45,8 +56,11 @@
                 let results = JSON.parse(this.responseText)["result"]
                 document.getElementById("results").innerHTML = ""
                 for(i in results){
-                    console.log(results[i])
-                    const item = results[i]
+                    item = results[i]
+                    for(i=0; i<item.length; i++){
+                        item[i] = new Option(item[i]).innerText
+                    }
+                    console.log(item)
                     const r = document.createElement("div")
                     r.setAttribute("class", "row mb-4")
                     const pic_column = document.createElement("div")
@@ -88,7 +102,7 @@
                     add_cart_btn.innerText = "Add to Cart"
                     add_cart_btn.setAttribute("type", "button")
                     add_cart_btn.setAttribute("class", "btn btn-secondary")
-                    add_cart_btn.setAttribute("onclick", "addCart("+item[0]+", '"+item[1]+"', "+item[2]+")")
+                    add_cart_btn.setAttribute("onclick", "addCart("+item[0]+", '"+item[1]+"', "+item[2]+","+item[4]+")")
                     btn_row.appendChild(add_cart_btn)
                     info_column.appendChild(btn_row)
                     r.appendChild(info_column)

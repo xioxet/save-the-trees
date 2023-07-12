@@ -119,6 +119,16 @@ def cart_checkout():
 def process_checkout():
     token = request.form['stripeToken']
     amount = request.form['amount']
+    cart_data = loads(request.json.get("cart"))
+    # calculate cost
+    calc_price = 0
+    for product in cart_data:
+        product_id = product[0]
+        unit_price = product_server.search_product(prod_id=product_id, fields="unit_price")
+
+        calc_price += unit_price * 100 * product[3]
+    if calc_price != amount:
+        return redirect("/oops")
     try:
         charge = stripe.Charge.create(
             amount=int(amount),
@@ -130,7 +140,12 @@ def process_checkout():
     
     except stripe.error.CardError as e:
         return render_template('payment_error.html', error_message=e)
-    
+
+
+@app.route("/oops")
+def error_page():
+    return render_template("payment_failure.html")
+
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact_form():
@@ -388,7 +403,7 @@ def prod_search_api():
     results = []
     for product in product_server.search_product(prod_id="*"):
         if request.form["search_name"] in product[1]:
-            results.append((product[0], product[1], float(str(product[2])), product[3], product[4]))
+            results.append((product[0], product[1], float(product[2]), product[3], product[4]))
     return dumps({"result": results})  # product ID, name, unit_price, description, stock
 
 
