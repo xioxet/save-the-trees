@@ -243,12 +243,6 @@ def contact_delete(id):
         return render_template('contact_delete.html', message=message, email=email, name=name, form=form)
 
 
-def check_privileges(role, role_required):
-    if role is None or role_required is None:
-        return False
-    return role_values.get(role, 0) >= role_values.get(role_required, 0)
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -257,15 +251,20 @@ def login():
         password = form.password.data
         user_details = find_username(username)
         if user_details:
-            if bcrypt.checkpw(password.encode('utf-8'), user_details[2].encode('utf-8')):
+            stored_password_hash = user_details[2]
+            if bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
                 session['user_id'] = user_details[0]
                 session['username'] = user_details[1]
                 session['role'] = 'admin' if user_details[0] == 1 else 'user'
+
                 if session['role'] == 'admin':
                     return redirect(url_for('admin_dashboard'))
                 return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid credentials. Please try again.')
+                return redirect(url_for('login'))
         else:
-            flash('Please try again.')
+            flash('Invalid credentials. Please try again.')
             return redirect(url_for('login'))
     return render_template('login.html', form=form)
 
@@ -286,49 +285,80 @@ def signup():
             salt = bcrypt.gensalt()
             password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
             add_verification_token(verification_token, username, password_hash, email)
-            send_email(email, "Verification email for Save The Trees", f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
+            send_email(email, "Verification email for Save The Trees",
+                       f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
             flash("You have been sent a verification link in an email.")
-            return redirect(url_for('login'))
+            return redirect(url_for('verification_token'))
     else:
         for error in form.errors.items():
             flash(error[1])
             return redirect(url_for('signup'))
     return render_template('signup.html', form=form)
 
-@app.route('/signup_verification/')
+
+@app.route('/signup_verification/', methods=['GET', 'POST'])
 @app.route('/signup_verification/<token>', methods=['GET', 'POST'])
-def verification_token(token):
+def verification_token(token=None):
     if token is None:
         token = ""
     try:
         verify_token(token)
         flash('Verification successful!')
         return redirect(url_for('login'))
-    except Exception as e: 
+    except Exception as e:
         flash(str(e))
         return redirect(url_for('main'))
-    
-    
 
-@app.route('/dashboard')
+@app.route('/verification', methods=['GET', 'POST'])
+def verification():
+    form = VerificationForm()
+    if form.validate_on_submit():
+        verification_code = form.verification_code.data
+        try:
+            verify_token(verification_code)
+            flash('Verification successful! You can now log in.')
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash(str(e))
+            return redirect(url_for('verification'))
+
+    return render_template('verification.html', form=form)
+
+
+@app.route('/dashboard', endpoint='dashboard')
+# @fresh_login_required(timeout_minutes=5)
 @role_required('user', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
-    if 'username' in session:
-        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
-    elif 'username' in session and session['role'] == 'admin':
+    if 'username' in session and session['role'] == 'user':
         return render_template('dashboard.html', username=session['username'], navbar_template='navbar_user.html')
+    elif 'username' in session and session['role'] == 'admin':
+        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
     else:
+        flash('You do not have permission to access the user dashboard.')
         return redirect(url_for('login'))
 
 
-@app.route('/admin_dashboard')
+
+@app.route('/admin_dashboard', endpoint='admin_dashboard')
+# @fresh_login_required(timeout_minutes=5)
 @role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def admin_dashboard():
     if 'username' in session and session['role'] == 'admin':
-        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_user.html')
+        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_admin.html')
     else:
         flash('You do not have permission to access the admin dashboard.')
         return redirect(url_for('login'))
+
+
+@app.route('/delete_user', methods=['GET', 'POST'])
+def delete_user():
+    if request.method == 'POST':
+        user_id_to_delete = session.get('user_id')
+        delete_user(user_id_to_delete)
+        session.clear()
+        return redirect(url_for('main'))
+
+    return render_template('DeleteAccount.html')
 
 @app.route('/logout')
 def logout():
