@@ -48,7 +48,7 @@
 </head>
 <body>
     <h1>Edit Event</h1>
-    <form method="POST" action="/event_edit/{{event[0]}}">
+    <form action="/edit/{{ event[0] }}" method="POST">
         <div class="form-group">
             <label for="title">Title:</label>
             <input type="text" id="title" name="title" value="{{ event[1] }}" required>
@@ -61,7 +61,12 @@
             <label for="description">Description:</label>
             <input type="text" id="description" name="description" value="{{ event[3] }}" required>
         </div>
+        <div class="form-group">
+            <label>Completion Status:</label>
+            <input type="checkbox" name="completed" {% if event[4] %}checked{% endif %}>
+        </div>
         <button type="submit" class="button">Save Changes</button>
     </form>
 </body>
 </html>
+

@@ -21,10 +21,6 @@ from email_handler import *
 from roles import *
 import bcrypt
 
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = token_urlsafe()
 
@@ -114,7 +110,7 @@ def cart_checkout():
     if 'stripe_price' not in session:
         flash('Error found.')
         return redirect(url_for('main'))
-    return render_template('checkout.html', publishable_key=stripe_publishable_key, stripe_price=session['stripe_price'])
+    return render_template('checkout.html', publishable_key=stripe_publishable_key, stripe_price=session['stripe_price'], price_format = f'{session["stripe_price"]/100:.2f}')
 
 @app.route('/process_checkout', methods=['GET', 'POST'])
 def process_checkout():
@@ -394,8 +390,15 @@ def event_add():
         title = request.form['title']
         date = request.form['date']
         description = request.form['description']
+        # Check if the 'completed' key exists in the form data
+
+        if 'completed' in request.form:
+            completed = int(request.form['completed'])  # Convert the value to an integer
+        else:
+            completed = 0  # Default value if 'completed' key is not present
+
         print(title, date, description)
-        mycursor.execute("INSERT INTO events (title, date, description) VALUES (%s, %s, %s)", (title, date, description))
+        mycursor.execute("INSERT INTO events (title, date, description, completed) VALUES (%s, %s, %s, %s)", (title, date, description, completed))
         mydb.commit()
         return redirect('/events')
     else:
@@ -412,7 +415,14 @@ def event_edit(event_id):
             title = request.form['title']
             date = request.form['date']
             description = request.form['description']
-            mycursor.execute("UPDATE events SET title = %s, date = %s, description = %s WHERE id = %s", (title, date, description, event_id))
+
+            # Check if the 'completed' key exists in the form data
+            if 'completed' in request.form:
+                completed = 1  # Set completed to 1 if the checkbox is checked
+            else:
+                completed = 0  # Set completed to 0 if the checkbox is not checked
+
+            mycursor.execute("UPDATE events SET title = %s, date = %s, description = %s, completed = %s WHERE id = %s", (title, date, description, completed, event_id))
             mydb.commit()
             return redirect('/events')
         else:

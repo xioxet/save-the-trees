@@ -7,7 +7,7 @@
         <tr><th>#</th><th>Item</th><th>Unit price</th><th>Quantity</th><th>Total price</th></tr>
     </table>
     <div>
-        <b>Total payable:</b> {{stripe_price}}
+        <b>Total payable:</b> &dollar;{{price_format}}
     </div>
     <script src="https://checkout.stripe.com/checkout.js" class="stripe-button m-auto"  id="xx"
             data-key="{{ publishable_key }}"

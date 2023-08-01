@@ -92,22 +92,30 @@
             <th>Title</th>
             <th>Date</th>
             <th>Description</th>
+            <th>Status</th>
             <th>Actions</th>
         </tr>
         {% for event in events %}
         <tr>
-            {% for item in event %}
+            {% for item in event[:4] %}
             <td>{{ item }}</td>
             {% endfor %}
             <td>
-                <a href="/event_edit/{{ event[0] }}" class="edit-button">Edit</a>
-                <form action="/event_delete/{{ event[0] }}" method="POST" onsubmit="return confirmDelete()">
+                {% if event[4] %}
+                    Completed
+                {% else %}
+                    Not Completed
+                {% endif %}
+            </td>
+            <td>
+                <a href="/edit/{{ event[0] }}" class="edit-button">Edit</a>
+                <form action="/delete/{{ event[0] }}" method="POST" onsubmit="return confirmDelete()">
                     <button type="submit" class="delete-button">Delete</button>
                 </form>
             </td>
         </tr>
         {% endfor %}
     </table>
-    <a href="/event_add" class="button">Add Event</a>
+    <a href="/add" class="button">Add Event</a>
 </body>
 </html>

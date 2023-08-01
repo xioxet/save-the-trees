@@ -51,7 +51,7 @@
 </head>
 <body>
     <h1>Add Event</h1>
-    <form action="/event_add" method="POST">
+    <form action="/add" method="POST">
         <div class="form-group">
             <label>Title:</label>
             <input type="text" name="title" required>
@@ -64,10 +64,16 @@
             <label>Description:</label>
             <input type="text" name="description" required>
         </div>
+       <div class="form-group">
+           <label>Completion Status:</label>
+           <input type="checkbox" name="completed" value="1">
+           <input type="hidden" name="completed" value="0">
+       </div>
         <div class="form-group">
             <button type="submit">Add</button>
         </div>
     </form>
 </body>
 </html>
+
 
