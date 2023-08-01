@@ -26,6 +26,7 @@ app.config['SECRET_KEY'] = token_urlsafe()
 
 @app.route('/')
 def main():
+    print('sdfsjdfklsdfj')
     leaderboard_entries = list()
     for order in most_recent_orders(5):
         firstname, lastname, quantity, message = order[2:6]
@@ -97,8 +98,8 @@ def process_payment_trees():
 # almost identical to above function but Uhhhhhhhhhh
 @app.route('/cart_get', methods=['GET','POST'])
 def get_cart():
-    cart_data = loads(request.json.get("cart"))
-    # calculate cost
+    session['cart'] = loads(request.json.get("cart"))
+    cart_data = session['cart']
     stripe_price = 0
     for product in cart_data:
         stripe_price += product[2] * 100 * product[3]
@@ -116,15 +117,14 @@ def cart_checkout():
 def process_checkout():
     token = request.form['stripeToken']
     amount = request.form['amount']
-    cart_data = loads(request.json.get("cart"))
+    cart_data = session['cart']
     # calculate cost
     calc_price = 0
     for product in cart_data:
         product_id = product[0]
-        unit_price = product_server.search_product(prod_id=product_id, fields="unit_price")
-
+        unit_price = product_server.search_product(prod_id=product_id, fields="unit_price")[0][0]
         calc_price += unit_price * 100 * product[3]
-    if calc_price != amount:
+    if calc_price != float(amount):
         return redirect("/oops")
     try:
         charge = stripe.Charge.create(
@@ -134,12 +134,15 @@ def process_checkout():
             description='Payment for Flask App'
         )
         purchase_status = product_server.log_purchase(cart_data, calc_price, session['user_id'], 'test address')
+        print(purchase_status)
+        print(purchase_status == True)
         # commit the charge or whatever IDK
     
     except stripe.error.CardError as e:
         return render_template('payment_error.html', error_message=e)
+    
     else:
-        if purchase_status is True:  # did not None or error message so executed successfully
+        if purchase_status:  # did not None or error message so executed successfully
             return render_template('payment_success.html', charge=charge)
         elif purchase_status is None:
             return render_template('payment_error.html', error_message="We don't know what happened, sorry")
@@ -460,3 +463,4 @@ def prod_search_api():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    print('x')
