@@ -19,6 +19,7 @@ import stripe
 #
 from email_handler import *
 from roles import *
+import bcrypt
 
 import logging
 log = logging.getLogger('werkzeug')
@@ -136,10 +137,19 @@ def process_checkout():
             source=token,
             description='Payment for Flask App'
         )
-        return render_template('payment_success.html', charge=charge)
+        purchase_status = product_server.log_purchase(cart_data, calc_price, session['user_id'], 'test address')
+        # commit the charge or whatever IDK
     
     except stripe.error.CardError as e:
         return render_template('payment_error.html', error_message=e)
+    else:
+        if purchase_status is True:  # did not None or error message so executed successfully
+            return render_template('payment_success.html', charge=charge)
+        elif purchase_status is None:
+            return render_template('payment_error.html', error_message="We don't know what happened, sorry")
+        else:
+            return render_template('payment_error.html', error_message=purchase_status)
+        pass
 
 
 @app.route("/oops")

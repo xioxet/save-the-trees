@@ -1,7 +1,7 @@
 import mysql.connector
 from getpass import getpass
 
-pass_verify = False
+pass_verify = True
 
 if pass_verify:
     password = getpass("Database password:")

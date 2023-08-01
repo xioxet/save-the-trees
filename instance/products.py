@@ -1,4 +1,19 @@
-from instance import mydb, mycursor
+
+if __name__ != "__main__":
+    from instance import mydb, mycursor
+else:
+    from __init__ import mydb, mycursor
+from mysql.connector.errors import Error as Sql_error
+
+
+not_debug = True
+
+
+def commit_if_not_debug():
+    if not_debug:
+        mydb.commit()
+    else:
+        print("Modification query executed (NOT COMMITTED)")
 
 
 def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
@@ -9,8 +24,15 @@ def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
     if (len(prod_name) <= 45 and unit_price < 10000 and len(description) <= 90
             and len(search_product(prod_id, "prod_id")) == 0) and onsale in (0, 1):
         product_params = (prod_id, prod_name, unit_price, description, stock, onsale)
-        mycursor.execute(insert_product, product_params)
-        return True
+        try:
+            mycursor.execute(insert_product, product_params)
+        except Sql_error as err:
+            print("Something went wrong:", err)
+            mydb.rollback()
+            return False
+        else:
+            commit_if_not_debug()
+            return True
     else:
         print("Add failed")
         return False
@@ -32,29 +54,80 @@ def add_stock(prod_id, stock):
     if len(products) > 0:
         update_query = "UPDATE products SET stock = stock + %s WHERE prod_id = %s"
         print(products)
-        for product in products:
-            mycursor.execute(update_query, (stock, product[0]))
-        return True
+        try:
+            for product in products:
+                mycursor.execute(update_query, (stock, product[0]))
+        except Sql_error as err:
+            print("Something went wrong:", err)
+            return False
+        else:
+            commit_if_not_debug()
+            return True
     else:
         print("Product does not exist")
         return False
 
 
-def sell_product(prod_id, amount):
+def sell_product(purchase_id, item_no, prod_id, amount):
     products = search_product(prod_id, fields="prod_id, unit_price, stock, onsale")
-    print(products)
+    print("Search result for sell test:", products)
     if len(products) != 1:
         print("Product does not exist")
-    elif products[0][2] < amount:
-        print("Insufficient stock")
-    elif products[0][3] != 1:
-        print("Product not on sale")
+        return False
     else:
-        sell_query = "UPDATE products SET stock = stock - %s WHERE prod_id = %s"
-        for product in products:
-            mycursor.execute(sell_query, (amount, product[0]))
-            print("Sold", amount, "of", product[0], ".", product[2]-amount, "remains")
-            print("Cost is", product[1]*amount)
+        product = products[0]
+        if product[2] < amount:
+            print("Insufficient stock")
+            return False
+        elif product[3] != 1:
+            print("Product not on sale")
+            return False
+        else:
+            sell_query = "UPDATE products SET stock = stock - %s WHERE prod_id = %s"
+            detail_log_query = ("INSERT INTO purchase_detail (purchase_id, item_no, prod_id, amount)"
+                                "VALUES (%s, %s, %s, %s)")
+            try:
+                mycursor.execute(sell_query, (amount, product[0]))
+                mycursor.execute(detail_log_query, (purchase_id, item_no, prod_id, amount))
+            except Sql_error as err:
+                print("Something went wrong:", err)
+                return False
+            else:
+                commit_if_not_debug()
+                print("Sold", amount, "of product id", product[0], ".", product[2]-amount, "remains")
+                print("Cost is", product[1]*amount)
+                return True
+
+
+def log_purchase(cart_data, total_price: int, user_id: int = None, address: str = "test address"):
+    mycursor.execute('SELECT count(*) from purchases')
+    purchase_id = mycursor.fetchone()[0] + 1
+
+    log_query = ('INSERT INTO purchases (purchase_id, total_price, address, user_id)'
+                 'VALUES (%s, %s, %s, %s)')
+    try:
+        mycursor.execute(log_query, (purchase_id, total_price/100, address, user_id))
+        for i in range(len(cart_data)):
+            if not sell_product(purchase_id, i+1, cart_data[i][0], cart_data[i][3]):  # Sell failed for some reason
+                mydb.rollback()
+                break
+    except Sql_error as err:
+        print("Something went wrong:", err)
+        mydb.rollback()
+        return err
+    else:
+        commit_if_not_debug()
+        return purchase_id
+    pass
+
+
+def get_purchase_log(purchase_id: int = "*"):
+    mycursor.execute("SELECT * FROM purchases where purchase_id = %s", (purchase_id,))
+    purchase_log = mycursor.fetchone()
+    if purchase_log:  # did not return None, so a result was found
+        mycursor.execute("SELECT * from purchase_detail where purchase_id = %s", (purchase_id,))
+        purchase_details = mycursor.fetchall()
+    return purchase_log, purchase_details
 
 
 def update_field(prod_id, field, value):
@@ -65,9 +138,15 @@ def update_field(prod_id, field, value):
     elif len(products) != 1:
         print("Product does not exist")
     else:
-        update_query = "UPDATE products SET " + field + " = %s WHERE prod_id = %s"
-        for product in products:
-            mycursor.execute(update_query, (value, product[0]))
+        try:
+            update_query = "UPDATE products SET " + field + " = %s WHERE prod_id = %s"
+            for product in products:
+                mycursor.execute(update_query, (value, product[0]))
+        except Sql_error as err:
+            print("Something went wrong:", err)
+            mydb.rollback()
+        else:
+            commit_if_not_debug()
     pass
 
 
@@ -75,13 +154,21 @@ def delete_product(prod_id):
     products = search_product(prod_id, fields="prod_id")
     if len(products) > 0:
         delete_query = "DELETE FROM products WHERE prod_id = %s"
-        for product in products:
-            mycursor.execute(delete_query, (product[0],))
+        try:
+            for product in products:
+                mycursor.execute(delete_query, (product[0],))
+        except Sql_error as err:
+            print("Something went wrong:", err)
+            mydb.rollback()
+        else:
+            commit_if_not_debug()
 
 
 if __name__ == "__main__":
+    not_debug = False
     print("Add Product Test")
-    add_product(1, "Product 1", 123.45, "Product 1 is the first product by Buy A Tree", 10, 1)
+    add_product(3, "Product 3", 333.33,
+                "Product 3 is the third product by Buy A Tree", 10, 1)
     mycursor.execute('select * from products')
     for test_product in mycursor.fetchall():
         print(test_product)
@@ -102,10 +189,17 @@ if __name__ == "__main__":
     update_field(1, 'onsale', 0)
 
     print("Sell Product Test")
-    sell_product(1, 5)
-    print(search_product(2, fields="stock"))
+    ret = log_purchase([[3, "Product 3", 333.33, 1, 10]], 33333)
+    if ret:
+        print("Purchase complete, purchase Id is", ret)
+    else:
+        print("Purchase fail?")
+    print(search_product())
 
-    print("Delete Product Test")
+    print("Read Purchase Log Test")
+    print(get_purchase_log(2))
+
+    print("Delete Product Test, deleting product 2")
     delete_product(2)
     mycursor.execute('select * from products')
     for test_product in mycursor.fetchall():
