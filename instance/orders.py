@@ -35,6 +35,13 @@ def search_orders(id, fields="*"):
     mycursor.execute(select_query, [id])
     return mycursor.fetchall() 
 
+def search_order_given_email(email):
+    select_query = "SELECT * FROM orders WHERE order_email = %s"
+    mycursor.execute(select_query, (email,))
+    data = [row for row in mycursor]
+    return data
+
+
 def set_satisfied(id):
     sql_query = f"UPDATE orders SET order_satisfied = 1 WHERE order_id = {id}"
     mycursor.execute(sql_query)

@@ -372,7 +372,18 @@ def verification():
 @role_required('user', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
     if 'username' in session and session['role'] == 'user':
-        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_user.html')
+        email = find_username(session['username'])[3]
+        print(email)
+        orders = search_order_given_email(email)
+        order_formatted = []
+        for order in orders:
+            new_order = {
+                "quantity": order[4],
+                "message": order[5],
+                "satisfied": order[-1],
+            }
+            order_formatted.append(new_order)
+        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_user.html', orders = order_formatted)
     elif 'username' in session and session['role'] == 'admin':
         return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
     else:
