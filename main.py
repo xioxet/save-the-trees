@@ -107,6 +107,7 @@ def get_cart():
     return redirect(url_for('cart_checkout'))
 
 @app.route('/cart_checkout', methods=['GET','POST'])
+@role_required('user', 'login', "Please log in.")
 def cart_checkout():
     if 'stripe_price' not in session:
         flash('Error found.')
@@ -114,9 +115,13 @@ def cart_checkout():
     return render_template('checkout.html', publishable_key=stripe_publishable_key, stripe_price=session['stripe_price'], price_format = f'{session["stripe_price"]/100:.2f}')
 
 @app.route('/process_checkout', methods=['GET', 'POST'])
+@role_required('user', 'login', "Please log in.")
 def process_checkout():
     token = request.form['stripeToken']
-    amount = request.form['amount']
+    try:
+        amount = float(request.form['amount'])
+    except ValueError:  #
+        return redirect('/oops')
     cart_data = session['cart']
     # calculate cost
     calc_price = 0
