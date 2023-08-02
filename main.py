@@ -470,6 +470,33 @@ def delete(event_id):
     mydb.commit()
     return redirect('/events')
 
+@app.route('/event_register/<int:event_id>', methods=['GET', 'POST'])
+@role_required('user', 'login', 'Please log in.')
+def event_register(event_id):
+
+    # Fetch the event details from the database
+    mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
+    event = mycursor.fetchone()
+
+    if not event:
+        return 'Event not found', 404
+
+    if request.method == 'POST':
+        # Get the user ID from the session
+        user_id = session['user_id']
+
+        # Insert the registration data into the event_registrations table
+        mycursor.execute("INSERT INTO event_registrations (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
+        mydb.commit()
+
+        flash('You have successfully registered for the event.')
+        return redirect(url_for('events'))
+
+    return render_template('event_register.html', event=event)
+
+@app.route('/user_events')
+def user_events():
+    return render_template('eventsuser.html')
 
 @app.route("/products")
 def products():
