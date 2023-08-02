@@ -8,6 +8,7 @@
     <img src="{{url_for('static', filename='images/vector_bg.png')}}">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
+    <br><br>
       <div class="alert alert-dark w-25 m-auto dismissible" onclick="dismiss(this)">
           {% for message in messages %}
             {{ message }}
@@ -26,6 +27,9 @@
     <div class="row justify-content-center mt-3">
       <a href="{{ url_for('login') }}" class="btn btn-dark btn-lg ml-3">
         Log in to start donating
+      </a>
+      <a href="{{ url_for('leaderboard') }}" class="btn btn-dark btn-lg ml-3">
+        View top donations
       </a>
   </div>
 

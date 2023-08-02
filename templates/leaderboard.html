@@ -2,20 +2,217 @@
 
 {% extends "base.html" %}
 {% block content %}
-<div class="leaderboard">
-  <h4 class="leaderboard-title">Top donations</h4>
-  {% for entry in entries %}
-  <div class="entry">
-    <h4>&#35;{{entry['number']}}: {{ entry['name'] }}</h4>
-    <h5>Donated {{ entry['trees_donated'] }} trees.</h5>
-    <div class="message">{{ entry['message'] }}</div>
+<link rel="stylesheet" href='static/home.css'>
+<div class="home_body" style="margin-top:-20px">
+  <img src="{{url_for('static', filename='images/vector_bg.png')}}">
+  <br><br>
+  <div class="leaderboard">
+    <div class="row mx-2">
+      <h4 class="leaderboard-title">Top {{num}} donations</h4>
+      <a href="/leaderboard/{{num + 5}}" class="href-button">View top {{num + 5}} donations</a>
+    </div>
+    {% for entry in entries %}
+    <div class="entry">
+      <h4>&#35;{{entry['number']}}: {{ entry['name'] }}</h4>
+      <h5>Donated {{ entry['trees_donated'] }} trees.</h5>
+      <div class="message">{{ entry['message'] }}</div>
+    </div>
+    {% endfor %}
   </div>
-  {% endfor %}
 </div>
-
 <style>
-  .entry:hover {
-    border: 2px solid black;
+  .home_body {
+    width: 100%;
+    margin: auto;
+    position: relative;
+}
+
+.home_body > img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: -1;
+}
+
+.header {
+    margin: auto;
+    font-size: 8cqw;
+    font-weight: bold;
+    color: white;
+    font-family: 'Verdana';
+    text-align: center;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5));
+    transition: color 0.3s;
+    cursor: default;
+}   
+
+.header > span {
+    display: inline-block;
+    width: auto; 
+    transition: transform 0.3s;
+}
+
+.header:hover {
+    color: forestgreen;
+}
+
+.header:hover > span:nth-child(1) {
+    transform: translate(-70%, 10%);
+}
+
+.header:hover > span:nth-child(2) {
+    transform: translate(-60%, -10%);
+}
+
+.header:hover > span:nth-child(3) {
+    transform: translate(-50%, 10%);
+}
+
+.header:hover > span:nth-child(4) {
+    transform: translate(-40%, -10%);
+}
+
+.header:hover > span:nth-child(5) {
+    transform: translate(-20%, 10%);
+}
+
+.header:hover > span:nth-child(6) {
+    transform: translate(-10%, -10%);
+}
+
+.header:hover > span:nth-child(7) {
+    transform: translate(0%, 10%);
+}
+
+.header:hover > span:nth-child(8) {
+    transform: translate(20%, 10%);
+}
+
+.header:hover > span:nth-child(9) {
+    transform: translate(30%, -10%);
+}
+
+.header:hover > span:nth-child(10) {
+    transform: translate(40%, 10%);
+}
+
+.header:hover > span:nth-child(11) {
+    transform: translate(50%, -10%);
+}
+
+.header:hover > span:nth-child(12) {
+    transform: translate(60%, 10%);
+}
+
+.header-2 {
+    font-size: 5cqw;
+    color: white;
+    margin: auto;
+    font: Verdana;
+    text-align: center;
+    font-weight:bold;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5));
+    cursor: default;
+}
+
+.cart_popover {
+    --bs-popover-max-width: 500px;
+}
+
+.href-button {
+  background-color: gray;
+  color: white;
+  font-size: 20px;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  padding-block: 10px;
+  padding-inline: 20px;
+  border-radius: 5px;
+}
+:root {
+    --header:forestgreen;
   }
+
+  .dismissible {
+    position: absolute;
+    left: 50%;
+    top: 25px;
+    transform: translate(-50%, 0);
+    opacity:0.9;  
+    z-index:1;
+    cursor: pointer;
+    box-sizing: border-box;
+    border: 2px solid rgba(0, 0, 0, 0);
+  }
+
+  .dismissible:hover {
+    border: 2px solid rgba(0, 0, 0, 0.9);
+  }
+
+  .leaderboard {
+    width: 50%;
+    margin: auto;
+    margin-top:20px;
+    border-left: 20px solid green;
+    padding-left:10px;
+  }
+
+  .leaderboard-title {
+    background-color: green;
+    color: white;
+    padding-block: 10px;
+    padding-inline: 20px;
+    width: fit-content;
+    border-radius:5px;
+    font-family:'Trebuchet MS';
+  }
+
+  .entry {
+    background-color: rgb(255, 255, 255);
+    border-radius: 5px;
+    padding:20px;
+    margin-block: 10px;
+  }
+
+  .entry > h5 {
+    color: gray;
+  }
+
+
+  .message {
+    background-color: rgb(244, 244, 244);
+    padding:20px;
+  }
+
+  .card-title {
+    background-color:var(--header);;
+    color: white;
+    font-family:'Trebuchet MS';
+    text-align:center;
+    padding-block:10px;
+    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.1));
+  }
+
+  .card-special {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: rgba(0,0,0,0.0);
+    border:none;
+  }
+
+  .card-text-special {
+    background-color: white;
+    padding:20px;
+    display: flex;
+    flex-direction: column;
+    height: 80%;
+    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.1));
+    border-radius: 5px;
+  }
+
 </style>
 {% endblock %}
