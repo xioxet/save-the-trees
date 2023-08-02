@@ -45,3 +45,9 @@ def most_recent_orders(num):
     mycursor.execute(query, (num,))
     data = [row for row in mycursor]
     return data
+
+def most_orders(num):
+    query = "SELECT * FROM orders WHERE order_anonymous = 0 ORDER BY order_quantity DESC LIMIT %s"
+    mycursor.execute(query, (num,))
+    data = [row for row in mycursor]
+    return data

@@ -1,0 +1,47 @@
+<!--by v.-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <link rel="stylesheet" href='static/home.css'>
+  <div class="home_body">
+    <img src="{{url_for('static', filename='images/vector_bg.png')}}">
+    <h1 class="header" style="font-size:50px;"><br>About us</h1>
+    <hr class="w-75">
+    <div class="container w-75">
+      <img style="width:100%" src="{{url_for('static', filename='images/banner.jpg')}}">
+    </div>
+    <hr class="w-75">
+    <div class="container w-75" id="background">
+      <div class="header" style="font-size:20px; color:black;">Intro</div>
+      <p>
+        &nbsp;&nbsp;&nbsp;&nbsp;Welcome to SaveTheTrees, a passionate and dedicated non-profit organization on a mission to make the world greener and combat climate change through reforestation efforts. At SaveTheTrees, we believe in the power of collective action, where every tree planted makes a significant difference in building a sustainable future for generations to come.
+      </p>
+      <div class="row">
+        <img width=350 height=350 style="margin:auto" src="{{url_for('static', filename='images/products/Placeholder.png')}}">
+      </div>
+      <br>
+      <div class="header" style="font-size:20px; color:black;">Our History</div>
+      <p>
+        &nbsp;&nbsp;&nbsp;&nbsp;SaveTheTrees was founded in [Year] by a group of environmentally-conscious individuals who saw the urgent need to protect and restore our planet's precious forests. With the alarming rate of deforestation and its devastating impact on wildlife, biodiversity, and climate, our founders set out on a noble endeavor to reforest the Earth and promote environmental stewardship.
+        <br><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Since our inception, SaveTheTrees has grown from a small grassroots movement into a global force for positive change. Our dedicated team of experts, volunteers, and partners work tirelessly to drive environmental awareness, inspire action, and bring about impactful reforestation projects worldwide.
+      </p>
+    </div>
+  </div>
+
+  <style>
+    #background {
+      background-color: rgba(255, 255, 255, 1);
+      padding: 25px;
+      padding-inline: 50px;
+      font-size:20px;
+      border-radius: 5px;
+      border-left: 25px solid green;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+{% endblock %}

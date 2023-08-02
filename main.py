@@ -38,6 +38,31 @@ def main():
         leaderboard_entries.append(entry)
     return render_template("home.html", entries=leaderboard_entries)
 
+@app.route('/about')
+def about():
+    return render_template("about.html")
+
+@app.route('/leaderboard')
+@app.route('/leaderboard/<int:num>')
+def leaderboard(num=5):
+    if type(num) is not int:
+        num = 5
+    leaderboard_entries = list()
+    orders = most_orders(num)
+    for i in range(num):
+        order = orders[i]
+        firstname, lastname, quantity, message = order[2:6]
+        entry = {
+            'name': f'{firstname} {lastname}',
+            'trees_donated': quantity,
+            'message': message,
+            'number': i + 1
+        }
+        leaderboard_entries.append(entry)
+    print(leaderboard_entries)
+    return render_template("leaderboard.html", entries=leaderboard_entries)
+
+
 # BORN TO DIE
 # WORLD IS A FUCK
 # 鬼神 Kill Em All 1989
