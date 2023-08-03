@@ -58,8 +58,10 @@ def check_role(username):
     mycursor.execute(query, (username,))
     data = mycursor.fetchall()
     if data:
-        return data[0][0]
-    return None
+        if data[0][0] == None:
+            return 'user'
+        else: return data[0][0]
+    return 'user'
 
 #signup_verification
 def add_verification_token(verification_token, username, password, email):
@@ -91,29 +93,26 @@ def verify_token(token):
 
 
 #login_verification
-def add_verification_pin(username, password, email, verification_pin):
-    date = datetime.datetime.now().date().isoformat()
-    query = "INSERT INTO users (username, password, email, date, verification_pin) VALUES (%s, %s, %s, %s, %s)"
-    mycursor.execute(query, (username, password, email, date, verification_pin))
+def add_verification_pin(username, verification_pin):
+    date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    query = "UPDATE users SET verification_pin = %s, date = %s WHERE username = %s"
+    mycursor.execute(query, (verification_pin, date, username))
     mydb.commit()
 
 
 token_expiration_time = datetime.timedelta(minutes=5)
 def verify_pin(verification_pin):
-    query = "SELECT username, password, email, is_verified date FROM users WHERE verification_pin = %s"
+    query = "SELECT username, is_verified, date FROM users WHERE verification_pin = %s"
     mycursor.execute(query, (verification_pin,))
-
     try:
-        username, password, email, date, is_verified = [row for row in mycursor][0]
+        username, is_verified, date = [row for row in mycursor][0]
     except:
         raise Exception("Invalid verification.")
-
+    print(username, date, is_verified)
     current_time = datetime.datetime.now()
-    date_time = date.strftime("%Y-%m-%d")  # Convert datetime to string with desired format
-    date_time = datetime.datetime.strptime(date_time, "%Y-%m-%d")
-
+    date_time = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     time_difference = current_time - date_time
-
+    print(current_time, date_time, time_difference)
     if time_difference > token_expiration_time:
         raise Exception("Verification pin has expired.")
 
@@ -122,10 +121,7 @@ def verify_pin(verification_pin):
         mycursor.execute(update_query, (username,))
         mydb.commit()
 
-    # Assuming there's an add_user function to create the user in the system
-    add_user(username, password, email)
-
     # Now that the user is successfully created, delete the verification_pin
-    delete_query = "DELETE FROM users WHERE verification_pin = %s"
-    mycursor.execute(delete_query, (verification_pin,))
+    delete_query = "UPDATE users SET verification_pin = '' WHERE username = %s"
+    mycursor.execute(delete_query, (username,))
     mydb.commit()

@@ -1,13 +1,23 @@
-{% extends "base.html" %}
+{% extends "form_base.html" %}
 
-{% block content %}
-  <h1>Verification</h1>
-  <form method="POST">
-    {{ form.csrf_token }}
-    <div class="form-group">
-      {{ form.verification_pin(class="form-control", placeholder="Enter verification code") }}
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
+{% block form %}
+    <form method="POST" action="">
+      {{ form.csrf_token }}
+      <h1>Input verification code ◐</h1>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-danger m-auto">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+      <div class='row-sm-3'>
+        <label>Verification code</label>
+        {{form.verification_pin(class="form-control")}}
+      </div>
+        <br>
+        {{ form.submit(class="btn btn-success") }}
+    </form>
 {% endblock %}
-

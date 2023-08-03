@@ -4,7 +4,7 @@ from instance import mydb, mycursor
 
 def add_order(order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous):
     mycursor.execute("select count(*) from orders")
-    order_id = mycursor.fetchone()[0]
+    order_id = mycursor.fetchone()[0] + 1
     insert_order = ("INSERT INTO orders"
                     "(order_id, order_email, order_fname, order_lname, order_quantity, order_message, order_anonymous, order_satisfied)"
                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
@@ -14,23 +14,21 @@ def add_order(order_email, order_fname, order_lname, order_quantity, order_messa
     mydb.commit()
 
 def get_satisfied_orders(satisfied):
-    if satisfied == False:
-        satisfied = 0
-    else: satisfied = 1 
-    mycursor.execute(f"SELECT * FROM orders WHERE order_satisfied = {satisfied}")
+    satisfied_value = 1 if satisfied else 0
+    select_query = "SELECT * FROM orders WHERE order_satisfied = %s"
+    mycursor.execute(select_query, (satisfied_value,))
     data = [row for row in mycursor]
     return data
 
 def get_anonymous_orders(anonymous):
-    if anonymous == False:
-        anonymous = 0
-    else: anonymous = 1 
-    mycursor.execute(f"SELECT * FROM orders WHERE order_anonymous = {anonymous}")
+    anonymous_value = 1 if anonymous else 0
+    select_query = "SELECT * FROM orders WHERE order_anonymous = %s"
+    mycursor.execute(select_query, (anonymous_value,))
     data = [row for row in mycursor]
     return data
 
-def search_orders(id, fields="*"):
-    select_query = (f"SELECT {fields} FROM orders "
+def search_orders(id):
+    select_query = ("SELECT * FROM orders "
                     "WHERE order_id = %s")
     mycursor.execute(select_query, [id])
     return mycursor.fetchall() 
@@ -41,10 +39,9 @@ def search_order_given_email(email):
     data = [row for row in mycursor]
     return data
 
-
 def set_satisfied(id):
-    sql_query = f"UPDATE orders SET order_satisfied = 1 WHERE order_id = {id}"
-    mycursor.execute(sql_query)
+    sql_query = "UPDATE orders SET order_satisfied = %s WHERE order_id = %s"
+    mycursor.execute(sql_query, (1, id))
     mydb.commit()
 
 def most_recent_orders(num):

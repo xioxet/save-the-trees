@@ -292,15 +292,15 @@ def login():
         username = form.username.data
         password = form.password.data
         user_details = find_user_verify(username)
+        print(username)
         if user_details:
             user_id, stored_password_hash, email, is_verified = user_details
             if bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
                 session['user_id'] = user_id
                 session['username'] = username
+                print(session['username'])
                 session['email'] = email
                 session['role'] = 'admin' if user_id == 3 else 'user'
-
-
                 if is_verified == 'TRUE':
                     if session['role'] == 'admin':
                         return redirect(url_for('admin_dashboard'))
@@ -313,10 +313,10 @@ def login():
                     else:
                         # The pin has expired, generate a new one and send it to the user's email
                         verification_pin = generate_verification_pin()
-                        add_verification_pin(username, password, email, verification_pin)
-                        send_email(email, "Login Verification for Save The Trees",
-                                   f"Your 6-digit verification pin is: {verification_pin}")
-
+                        add_verification_pin(username, verification_pin)
+                        # send_email(email, "Login Verification for Save The Trees",
+                        #           f"Your 6-digit verification pin is: {verification_pin}")
+                        print(verification_pin)
                         # Redirect the user to the verification page to enter the pin
                         flash(
                             "We've sent a new 6-digit verification pin to your email. Please enter the pin to continue.")
@@ -334,21 +334,19 @@ def verification():
     form = VerificationForm()
     if form.validate_on_submit():
         verification_pin = form.verification_pin.data
-
         try:
-            username = verify_pin(verification_pin)
-            session['username'] = username
-            session['is_verified'] == 'TRUE'
+            verify_pin(verification_pin)
+            print('successful')
+            session['is_verified'] = 'TRUE'
             pop_verification_pin()
-
             if session['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
+            print('redirecting')
             return redirect(url_for('dashboard'))
-
         except Exception as e:
             flash(str(e))
+            print(e)
             return redirect(url_for('verification'))
-
     return render_template('verification.html', form=form)
 
 def is_password_valid(password):
@@ -411,6 +409,8 @@ def verification_token(token=None):
 @role_required('user', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
     if 'username' in session and session['role'] == 'user':
+        print('below is username')
+        print(session['username'])
         email = find_username(session['username'])[3]
         print(email)
         orders = search_order_given_email(email)
@@ -569,8 +569,8 @@ def prod_search_api():
             results.append((product[0], product[1], float(product[2]), product[3], product[4]))
     return dumps({"result": results})  # product ID, name, unit_price, description, stock
 
+print(check_role('qqq'))
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-    print('x')
