@@ -1,5 +1,3 @@
-{% extends "base.html" %}
-
 {% block content %}
  {% include navbar_template %}
   <link rel="stylesheet" href='static/home.css'>
@@ -21,8 +19,6 @@
       </div>
     </div>
         <span class="navbar-text">Welcome, {{ username }}!</span><br>
-
-    <a href="/logout" target="_blank">Logout</a>
-        </section>
+  </div>
     </body>
 {% endblock %}
