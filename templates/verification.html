@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Verification</h1>
+  <form method="POST">
+    {{ form.csrf_token }}
+    <div class="form-group">
+      {{ form.verification_pin(class="form-control", placeholder="Enter verification code") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+{% endblock %}
+

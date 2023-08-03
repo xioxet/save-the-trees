@@ -1,11 +1,35 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import random
+from flask import session
+import time
+
 
 
 # Example usage
 sender_email = 'savethetrees.auto@gmail.com'
 sender_password = 'tvlrsnkvrazbtmcy'
+
+
+def generate_verification_pin():
+    verification_pin = str(random.randint(100000, 999999))
+    # Store the pin and its timestamp in the session
+    session['verification_pin'] = {
+        'pin': verification_pin,
+        'timestamp': time.time()
+    }
+    return verification_pin
+
+def is_verification_pin_expired():
+    verification_pin_info = session.get('verification_pin')
+    if verification_pin_info:
+        timestamp = verification_pin_info.get('timestamp')
+        return (time.time() - timestamp) >= 300  # 300 seconds = 5 minutes
+    return True
+
+def pop_verification_pin():
+    session.pop('verification_pin', None)
 
 
 def send_email(receiver_email, subject, message, sender_email=sender_email, sender_password=sender_password):

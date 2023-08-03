@@ -1,26 +1,54 @@
 {% extends "form_base.html" %}
 
 {% block form %}
-    <form method="POST" action="">
+<style>.control-label {
+    text-align: left !important;
+    padding-bottom: 4px;
+}
+.progress {
+    height: 3px !important;
+}
+.form-group {
+    margin-bottom: 10px;
+}
+.show-pass{
+    position: absolute;
+    top:5%;
+    right: 8%;
+}
+.progress-bar-danger {
+    background-color: #e90f10;
+}
+.progress-bar-warning{
+    background-color: #ffad00;
+}
+.progress-bar-success{
+    background-color: #02b502;
+}
+}
+.fa-eye{
+    color: #022255;
+    cursor: pointer;
+}
+.ex-account p a{
+    color: #f6086e;
+    text-decoration: underline;
+}
+.fa-circle{
+    font-size: 6px;
+}
+.fa-check {
+  color: #02b502;
+}
+
+</style>
+
+    <form method="POST" action="" onsubmit="return validatePassword();">
       {{ form.csrf_token }}
-      <h1>Sign up ◐</h1>
-      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="alert alert-danger m-auto">
-            {% for message in messages %}
-              {{ message }}
-            {% endfor %}
-        </div>
-      {% endif %}
-      {% endwith %}
+      <h1>Signup ◐</h1>
       <div class='form-group'>
         <label>Username</label>
         {{ form.username(class="form-control", placeholder="Enter username") }}
-      </div>
-
-      <div class='form-group'>
-        <label>Password</label>
-        {{ form.password(type="password", class="form-control", placeholder="Enter password") }}
       </div>
 
       <div class='form-group'>
@@ -28,6 +56,186 @@
         {{ form.email(class="form-control", placeholder="Enter email") }}
       </div>
 
-        {{ form.submit(class="btn btn-success") }}
+      <div class='form-group'>
+        <label>Password</label>
+        {{ form.password(class="form-control", placeholder="Enter password") }}
+        <div id="password-error" class="error-message" style="display: none;"></div>
+      </div>
+                  <div>
+                    <div class="col-md-12">
+                        <span class="show-pass" onclick="toggle()">
+                            <i class="far fa-eye" onclick="myFunction(this)"></i>
+                        </span>
+                        <div id="popover-password">
+                            <p><span id="result"></span></p>
+                            <div class="progress">
+                                <div id="password-strength"
+                                    class="progress-bar"
+                                    role="progressbar"
+                                    aria-valuenow="40"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    style="width:0%">
+                                </div>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li class="">
+                                    <span class="low-upper-case">
+                                        <i class="fas fa-circle" aria-hidden="true"></i>
+                                        &nbsp;Lowercase &amp; Uppercase
+                                    </span>
+                                </li>
+                                <li class="">
+                                    <span class="one-number">
+                                        <i class="fas fa-circle" aria-hidden="true"></i>
+                                        &nbsp;Number (0-9)
+                                    </span>
+                                </li>
+                                <li class="">
+                                    <span class="one-special-char">
+                                        <i class="fas fa-circle" aria-hidden="true"></i>
+                                        &nbsp;Special Character (!@#$%^&*)
+                                    </span>
+                                </li>
+                                <li class="">
+                                    <span class="eight-character">
+                                        <i class="fas fa-circle" aria-hidden="true"></i>
+                                        &nbsp;Atleast 8 Character
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+
+      {{ form.submit(class="btn btn-success") }}
     </form>
+    <div>
+      Already have an account?
+      <a href="{{ url_for('login') }}">
+        Login
+      </a>
+    </div>
+
+<script src="https://kit.fontawesome.com/1c2c2462bf.js" crossorigin="anonymous"></script>
+<script>
+function is_password_valid(password) {
+    // Implement your password strength criteria here
+    // For example, check for length, uppercase, lowercase, numbers, and special characters
+    // Return True if the password is valid, False otherwise
+    return password.length >= 8 &&
+      password.match(/[a-z]/) &&
+      password.match(/[A-Z]/) &&
+      password.match(/[0-9]/) &&
+      password.match(/[!@#$%^&*]/);
+  }
+
+  function validatePassword() {
+    let password = document.getElementById("password").value;
+    if (!is_password_valid(password)) {
+      alert("Password must meet the requirements.");
+      return false; // Prevent form submission
+    } else {
+      return true; // Allow form submission
+    }
+  }
+function checkStrength(password) {
+  // ... Your existing password strength check code ...
+
+  // Add the following code to show an error message if strength is less than 2
+  if (strength < 2) {
+    let passwordError = document.getElementById("password-error");
+    passwordError.textContent = "Password must meet the requirements.";
+    passwordError.style.display = "block";
+  } else {
+    let passwordError = document.getElementById("password-error");
+    passwordError.style.display = "none";
+  }
+}
+let state = false;
+let password = document.getElementById("password");
+let passwordStrength = document.getElementById("password-strength");
+let lowUpperCase = document.querySelector(".low-upper-case i");
+let number = document.querySelector(".one-number i");
+let specialChar = document.querySelector(".one-special-char i");
+let eightChar = document.querySelector(".eight-character i");
+
+password.addEventListener("keyup", function(){
+    let pass = document.getElementById("password").value;
+    checkStrength(pass);
+});
+
+function toggle(){
+    if(state){
+        document.getElementById("password").setAttribute("type","password");
+        state = false;
+    }else{
+        document.getElementById("password").setAttribute("type","text")
+        state = true;
+    }
+}
+
+function myFunction(show){
+    show.classList.toggle("fa-eye-slash");
+}
+
+
+
+    //If password contains both lower and uppercase characters
+    if (password.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) {
+        strength += 1;
+        lowUpperCase.classList.remove('fa-circle');
+        lowUpperCase.classList.add('fa-check');
+    } else {
+        lowUpperCase.classList.add('fa-circle');
+        lowUpperCase.classList.remove('fa-check');
+    }
+    //If it has numbers and characters
+    if (password.match(/([0-9])/)) {
+        strength += 1;
+        number.classList.remove('fa-circle');
+        number.classList.add('fa-check');
+    } else {
+        number.classList.add('fa-circle');
+        number.classList.remove('fa-check');
+    }
+    //If it has one special character
+    if (password.match(/([!,%,&,@,#,$,^,*,?,_,~])/)) {
+        strength += 1;
+        specialChar.classList.remove('fa-circle');
+        specialChar.classList.add('fa-check');
+    } else {
+        specialChar.classList.add('fa-circle');
+        specialChar.classList.remove('fa-check');
+    }
+    //If password is greater than 7
+    if (password.length > 7) {
+        strength += 1;
+        eightChar.classList.remove('fa-circle');
+        eightChar.classList.add('fa-check');
+    } else {
+        eightChar.classList.add('fa-circle');
+        eightChar.classList.remove('fa-check');
+    }
+
+    // If value is less than 2
+    if (strength < 2) {
+        passwordStrength.classList.remove('progress-bar-warning');
+        passwordStrength.classList.remove('progress-bar-success');
+        passwordStrength.classList.add('progress-bar-danger');
+        passwordStrength.style = 'width: 10%';
+    } else if (strength == 3) {
+        passwordStrength.classList.remove('progress-bar-success');
+        passwordStrength.classList.remove('progress-bar-danger');
+        passwordStrength.classList.add('progress-bar-warning');
+        passwordStrength.style = 'width: 60%';
+    } else if (strength == 4) {
+        passwordStrength.classList.remove('progress-bar-warning');
+        passwordStrength.classList.remove('progress-bar-danger');
+        passwordStrength.classList.add('progress-bar-success');
+        passwordStrength.style = 'width: 100%';
+    }
+</script>
+
 {% endblock %}

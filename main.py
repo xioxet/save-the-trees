@@ -291,17 +291,36 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-        user_details = find_username(username)
+        user_details = find_user_verify(username)
         if user_details:
-            stored_password_hash = user_details[2]
+            user_id, stored_password_hash, email, is_verified = user_details
             if bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
-                session['user_id'] = user_details[0]
-                session['username'] = user_details[1]
-                session['role'] = 'admin' if user_details[0] == 1 else 'user'
+                session['user_id'] = user_id
+                session['username'] = username
+                session['email'] = email
+                session['role'] = 'admin' if user_id == 3 else 'user'
 
-                if session['role'] == 'admin':
-                    return redirect(url_for('admin_dashboard'))
-                return redirect(url_for('dashboard'))
+
+                if is_verified == 'TRUE':
+                    if session['role'] == 'admin':
+                        return redirect(url_for('admin_dashboard'))
+                    return redirect(url_for('dashboard'))
+                else:
+                    if not is_verification_pin_expired():
+                        # The pin is still valid, redirect to verification page
+                        flash("Please enter the 6-digit verification pin we sent to your email.")
+                        return redirect(url_for('verification'))
+                    else:
+                        # The pin has expired, generate a new one and send it to the user's email
+                        verification_pin = generate_verification_pin()
+                        add_verification_pin(username, password, email, verification_pin)
+                        send_email(email, "Login Verification for Save The Trees",
+                                   f"Your 6-digit verification pin is: {verification_pin}")
+
+                        # Redirect the user to the verification page to enter the pin
+                        flash(
+                            "We've sent a new 6-digit verification pin to your email. Please enter the pin to continue.")
+                        return redirect(url_for('verification'))
             else:
                 flash('Invalid credentials. Please try again.')
                 return redirect(url_for('login'))
@@ -310,6 +329,39 @@ def login():
             return redirect(url_for('login'))
     return render_template('login.html', form=form)
 
+@app.route('/verification', methods=['GET', 'POST'])
+def verification():
+    form = VerificationForm()
+    if form.validate_on_submit():
+        verification_pin = form.verification_pin.data
+
+        try:
+            username = verify_pin(verification_pin)
+            session['username'] = username
+            session['is_verified'] == 'TRUE'
+            pop_verification_pin()
+
+            if session['role'] == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('dashboard'))
+
+        except Exception as e:
+            flash(str(e))
+            return redirect(url_for('verification'))
+
+    return render_template('verification.html', form=form)
+
+def is_password_valid(password):
+    # Check if the password has at least 8 characters, contains at least one uppercase letter,
+    # at least one lowercase letter, and at least one number
+    if len(password) < 8:
+        return False
+
+    has_uppercase = any(c.isupper() for c in password)
+    has_lowercase = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+
+    return has_uppercase and has_lowercase and has_digit
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -318,6 +370,9 @@ def signup():
         username, password, email = form.username.data, form.password.data, form.email.data
         user = find_username(username)
         email_user = find_email(email)
+        if not is_password_valid(password):
+            flash("Password must meet the requirements.", "error")
+            return render_template('signup.html', form=form)
         if user or email_user:
             flash("Credentials not unique.")
             return redirect(url_for('signup'))
@@ -350,22 +405,6 @@ def verification_token(token=None):
     except Exception as e:
         flash(str(e))
         return redirect(url_for('main'))
-
-@app.route('/verification', methods=['GET', 'POST'])
-def verification():
-    form = VerificationForm()
-    if form.validate_on_submit():
-        verification_code = form.verification_code.data
-        try:
-            verify_token(verification_code)
-            flash('Verification successful! You can now log in.')
-            return redirect(url_for('login'))
-        except Exception as e:
-            flash(str(e))
-            return redirect(url_for('verification'))
-
-    return render_template('verification.html', form=form)
-
 
 @app.route('/dashboard', endpoint='dashboard')
 # @fresh_login_required(timeout_minutes=5)
