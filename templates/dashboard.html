@@ -24,31 +24,31 @@
     <span class="navbar-text">Welcome, {{ username }}!</span><br>
 
     <div class="container mt-5 m-auto">
-      {% if orders %}
       <h1 class="m-auto" style="text-align: center;">Your donations</h1><br>
+      {% if orders %}
       <table class="table table-dark w-50 m-auto">
-      <thead>
+        <thead>
           <tr>
               <th>Message</th>
               <th>Quantity</th>
               <th>Planted</th>
           </tr>
-      </thead>
-                  <tbody>
-                      {% for order in orders %}
-                          <tr {% if order.satisfied == 1 %}style="background-color: darkgreen;"{% else %}style="background-color: darkred;"{% endif %}>
-                              <td>{{ order.message }}</td>
-                              <td>{{ order.quantity }}</td>
-                              <td>{% if order.satisfied == 1 %} Planted {% else %}Not planted yet{% endif %}</td>
-                          </tr>
-                      {% endfor %}
-                  </tbody>
-              </table>
-          {% else %}
-              <div class="alert alert-info">
-                  There are no orders.
-              </div>
-          {% endif %}
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr {% if order.satisfied == 1 %}style="background-color: darkgreen;"{% else %}style="background-color: darkred;"{% endif %}>
+            <td>{{ order.message }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>{% if order.satisfied == 1 %} Planted {% else %}Not planted yet{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+        <div class="alert alert-info w-25 m-auto">
+            You have no pending orders. 
+        </div>
+    {% endif %}
       </div> 
     <a href="/logout" target="_blank">Logout</a>
         </section>

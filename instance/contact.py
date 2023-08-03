@@ -18,14 +18,14 @@ def get_contact(replied=False):
     data = [row for row in mycursor]
     return data
 
-def search_contact(contact_id, fields="*"):
-    select_query = (f"SELECT {fields} FROM contact "
-                    "WHERE contact_id = %s")
-    mycursor.execute(select_query, [contact_id])
-    return mycursor.fetchall() 
+def search_contact(contact_id):
+    select_query = "SELECT * FROM contact WHERE contact_id = %s"
+    mycursor.execute(select_query, (contact_id,))
+    return mycursor.fetchall()
 
 def delete_contact(contact_id):
-    mycursor.execute(f"DELETE FROM contact WHERE contact_id = {contact_id}")
+    delete_query = "DELETE FROM contact WHERE contact_id = %s"
+    mycursor.execute(delete_query, (contact_id,))
     mydb.commit()
 
 def set_responded(contact_id, response):
