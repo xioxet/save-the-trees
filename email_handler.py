@@ -12,6 +12,12 @@ sender_email = 'savethetrees.auto@gmail.com'
 sender_password = 'tvlrsnkvrazbtmcy'
 
 
+def generate_del_verification_pin():
+    del_verification_pin = str(random.randint(100000, 999999))
+    session['del_verification_pin'] = {
+        'pin': del_verification_pin
+    }
+    return del_verification_pin
 def generate_verification_pin():
     verification_pin = str(random.randint(100000, 999999))
     # Store the pin and its timestamp in the session

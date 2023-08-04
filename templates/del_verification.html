@@ -1,0 +1,24 @@
+{% extends "form_base.html" %}
+
+{% block form %}
+    <form method="POST" action="">
+      {{ form.csrf_token }}
+      <h1>Input verification code ◐</h1>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-danger m-auto">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+      <div class='row-sm-3'>
+        <label>Verification code</label>
+        {{form.del_verification_pin(class="form-control")}}
+      </div>
+        <br>
+        {{ form.delete(class="btn btn-danger") }}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-danger">Go Back</a>
+    </form>
+{% endblock %}

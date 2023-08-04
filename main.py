@@ -460,6 +460,48 @@ def delete_user():
 
     return render_template('DeleteAccount.html')
 
+@app.route('/DeleteAccount', methods=['GET', 'POST'])
+def DeleteAccount():
+    form = DeleteForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+
+        if form.verify.data:
+            email_data = find_email(email)
+            if email_data is None:
+                flash("The provided email does not exist in the database.")
+                return render_template('DeleteAccount.html', form=form)
+            verification_pin = generate_del_verification_pin()
+            add_delete_verification_pin(verification_pin, username)
+            print(verification_pin)
+            send_email(email, "Delete account verification for Save The Trees",
+                       f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/del_verification/{verification_pin}")
+            flash("You have been sent a verification link in an email. Please verify your account to continue.")
+            return redirect(url_for('del_verification'))
+        else:
+            delete_user(session.get('user_id'))
+            flash("Account deleted successfully.")
+            return redirect(url_for('main'))
+    return render_template('DeleteAccount.html', form=form)
+
+@app.route('/del_verification', methods=['GET', 'POST'])
+def del_verification():
+    form = DelVerification()
+    if form.validate_on_submit():
+        verification_pin = form.del_verification_pin.data
+        try:
+            verify_del_pin(verification_pin)
+            print('successful')
+            delete_user(session.get('user_id'))
+            flash("Account deleted successfully.")
+            return redirect(url_for('main'))
+        except Exception as e:
+            flash(str(e))
+            print(e)
+            return redirect(url_for('del_verification'))
+    return render_template('del_verification.html', form=form)
+
 @app.route('/logout')
 def logout():
     session.clear()

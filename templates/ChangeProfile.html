@@ -1,0 +1,42 @@
+{% extends "form_base.html" %}
+{% block form %}
+    <link rel="stylesheet" href='static/home.css'>
+    <form method="POST" action="">
+      {{ form.csrf_token }}
+      <h1>Change Profile ◐</h1>
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-danger m-auto">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+      <br>
+  <div class="form-group">
+      <div class='form-group'>
+        <label>Username</label>
+        {{ form.username(class="form-control", placeholder="Enter username") }}
+      </div>
+
+      <div class='form-group'>
+        <label>Email</label>
+        {{ form.email(class="form-control", placeholder="Enter email") }}
+      </div>
+
+      <div class='form-group'>
+        <label>Password</label>
+        {{ form.password(class="form-control", placeholder="Enter password") }}
+        <div id="password-error" class="error-message" style="display: none;"></div>
+      </div>
+
+<a href="{{ url_for('dashboard') }}" class="btn btn-danger">Go Back</a>
+      {{ form.submit(class="btn btn-success") }}
+
+
+  </div>
+    </form>
+
+{% endblock %}
