@@ -51,8 +51,7 @@ def send_email(receiver_email, subject, message, sender_email=sender_email, send
     msg.attach(MIMEText(message, 'plain'))
 
     try:
-        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=120)
-        print(server)
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=120)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
