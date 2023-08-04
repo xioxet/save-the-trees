@@ -25,6 +25,13 @@ def find_email(email):
     if len(data) == 0: return None
     return data[0]
 
+def get_user_email(username):
+    query = "SELECT email FROM users where username = %s"
+    mycursor.execute(query, (username,))
+    data = [row for row in mycursor]
+    return data[0][0]
+    
+
 def get_user_id(username):
     query = "SELECT user_id FROM users WHERE username = %s"
     mycursor.execute(query, (username,))
@@ -38,16 +45,6 @@ def find_user_verify(username):
     return user_details
 
 
-
-def find_email(email):
-    query = "SELECT * FROM users WHERE email = %s"
-    mycursor.execute(query, (email,))
-    data = [row for row in mycursor]
-    print(f'data = {data}')
-    if len(data) == 0: return None
-    return data[0]
-
-
 def add_user(username, password, email):
     #Insert the new row with the calculated User ID
     insert_user = ("INSERT INTO users"
@@ -59,7 +56,7 @@ def add_user(username, password, email):
     mycursor.execute(insert_user, user_params)
     mydb.commit()
 
-def delete_user(username):
+def delete_user_from_database(username):
     query = "DELETE FROM users WHERE username = %s"
     mycursor.execute(query, (str(username),))
     mydb.commit()
@@ -162,12 +159,13 @@ def verify_pin(verification_pin):
 
 #delete verification
 def add_delete_verification_pin(username, delete_verification_pin):
-    query = "UPDATE users SET delete_verification_pin = %s WHERE username = %s"
+    print(username, delete_verification_pin)
+    query = "UPDATE users SET del_verification_pin = %s WHERE username = %s"
     mycursor.execute(query, (username, delete_verification_pin))
     mydb.commit()
 
 def verify_del_pin(delete_verification_pin):
-    query = "SELECT username FROM users WHERE delete_verification_pin = %s"
+    query = "SELECT username FROM users WHERE del_verification_pin = %s"
     mycursor.execute(query, (delete_verification_pin,))
     result = mycursor.fetchone()
 

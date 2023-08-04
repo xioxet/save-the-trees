@@ -18,6 +18,7 @@ def generate_del_verification_pin():
         'pin': del_verification_pin
     }
     return del_verification_pin
+
 def generate_verification_pin():
     verification_pin = str(random.randint(100000, 999999))
     # Store the pin and its timestamp in the session
@@ -50,7 +51,8 @@ def send_email(receiver_email, subject, message, sender_email=sender_email, send
     msg.attach(MIMEText(message, 'plain'))
 
     try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=120)
+        print(server)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())

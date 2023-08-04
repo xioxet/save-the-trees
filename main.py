@@ -215,6 +215,7 @@ def contact_form():
         errors = form.errors
         for field, field_errors in errors.items():
             flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
+        
     return render_template("contact_form.html", form=form)
 
 # i am SO SORRY FOR THIS ENTIRE FUNCTION...
@@ -322,8 +323,8 @@ def login():
                         # The pin has expired, generate a new one and send it to the user's email
                         verification_pin = generate_verification_pin()
                         add_verification_pin(username, verification_pin)
-                        # send_email(email, "Login Verification for Save The Trees",
-                        #           f"Your 6-digit verification pin is: {verification_pin}")
+                        send_email(email, "Login Verification for Save The Trees",
+                                   f"Your 6-digit verification pin is: {verification_pin}")
                         print(verification_pin)
                         # Redirect the user to the verification page to enter the pin
                         flash(
@@ -464,10 +465,10 @@ def delete_user():
 def DeleteAccount():
     form = DeleteForm()
     if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
-
-        if form.verify.data:
+        username = session['username']
+        email = get_user_email(username)
+        if form.delete.data:
+            print('here')
             email_data = find_email(email)
             if email_data is None:
                 flash("The provided email does not exist in the database.")
@@ -475,15 +476,19 @@ def DeleteAccount():
             verification_pin = generate_del_verification_pin()
             add_delete_verification_pin(verification_pin, username)
             print(verification_pin)
-            send_email(email, "Delete account verification for Save The Trees",
-                       f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/del_verification/{verification_pin}")
+            # send_email(email, "Delete account verification for Save The Trees",
+            #         f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/#del_verification/{verification_pin}")
             flash("You have been sent a verification link in an email. Please verify your account to continue.")
             return redirect(url_for('del_verification'))
         else:
             delete_user(session.get('user_id'))
             flash("Account deleted successfully.")
             return redirect(url_for('main'))
-    return render_template('DeleteAccount.html', form=form)
+    else:
+        errors = form.errors
+        for field, field_errors in errors.items():
+            flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
+        return render_template('DeleteAccount.html', form=form)
 
 @app.route('/del_verification', methods=['GET', 'POST'])
 def del_verification():
@@ -493,7 +498,7 @@ def del_verification():
         try:
             verify_del_pin(verification_pin)
             print('successful')
-            delete_user(session.get('user_id'))
+            delete_user_from_database(session['username'])
             flash("Account deleted successfully.")
             return redirect(url_for('main'))
         except Exception as e:

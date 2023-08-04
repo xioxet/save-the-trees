@@ -28,14 +28,12 @@ class VerificationForm(FlaskForm):
     submit = SubmitField('Verify')
 
 class DeleteForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired()])
-    verify = SubmitField('Verify')
+    delete = SubmitField('Verify')
     go_back = SubmitField('Go Back')
 
 class DelVerification(FlaskForm):
     del_verification_pin = StringField('Verification Code', validators=[DataRequired()])
-    Delete = SubmitField('Delete Account')
+    delete = SubmitField('Delete Account')
 
 class ForgotPasswordForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
