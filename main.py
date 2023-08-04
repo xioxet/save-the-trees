@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
 from secrets import token_urlsafe
 from product_form import SearchForm
-#
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from payment import *
 from contact import *
 from login import *
@@ -20,9 +21,16 @@ import stripe
 from email_handler import *
 from roles import *
 import bcrypt
+from decimal import Decimal
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = token_urlsafe()
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["600 per minute", "20 per second"],
+    storage_uri="memory://",
+)
 
 @app.route('/')
 def main():
@@ -155,9 +163,9 @@ def process_checkout():
     calc_price = 0
     for product in cart_data:
         product_id = product[0]
-        unit_price = product_server.search_product(prod_id=product_id, fields="unit_price")[0][0]
+        unit_price = product_server.search_product([product_id], ret_fields=("unit_price",))[0][0]
         calc_price += unit_price * 100 * product[3]
-    if calc_price != float(amount):
+    if calc_price != Decimal(amount):
         return redirect("/oops")
     try:
         charge = stripe.Charge.create(
@@ -176,7 +184,7 @@ def process_checkout():
     
     else:
         if purchase_status:  # did not None or error message so executed successfully
-            return render_template('payment_success.html', charge=charge)
+            return render_template('payment_success.html', charge=charge, clear_cart=True)
         elif purchase_status is None:
             return render_template('payment_error.html', error_message="We don't know what happened, sorry")
         else:
@@ -561,10 +569,10 @@ def prod_search_api():
     if request.method != "POST":
         return redirect("/products")
     print(request.form)
-    result = product_server.search_product(prod_id="*")
+    result = product_server.search_product(["*"])
     print(result)
     results = []
-    for product in product_server.search_product(prod_id="*"):
+    for product in result:
         if request.form["search_name"] in product[1]:
             results.append((product[0], product[1], float(product[2]), product[3], product[4]))
     return dumps({"result": results})  # product ID, name, unit_price, description, stock

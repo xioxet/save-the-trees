@@ -8,4 +8,7 @@
       <a class="btn btn-primary" href="/" role="button">Return to Home</a>
   </div>
 </div>
+{% if clear_cart %}
+<script>localStorage["cart"] = "";</script>
+{% endif %}
 {% endblock %}

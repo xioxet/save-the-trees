@@ -110,7 +110,7 @@ def verify_pin(verification_pin):
         raise Exception("Invalid verification.")
     print(username, date, is_verified)
     current_time = datetime.datetime.now()
-    date_time = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    date_time = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
     time_difference = current_time - date_time
     print(current_time, date_time, time_difference)
     if time_difference > token_expiration_time:
