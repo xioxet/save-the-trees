@@ -438,7 +438,44 @@ def dashboard():
         flash('You do not have permission to access the user dashboard.')
         return redirect(url_for('login'))
 
+@app.route('/ChangeProfile', methods=['GET', 'POST'])
+def ChangeProfile():
+    form = ProfileForm()
 
+    # Check if the user is logged in (if 'user_id' is in session)
+    if 'user_id' not in session:
+        flash('Please log in to access your profile.')
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+
+    if form.validate_on_submit():
+
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data
+
+        # Check if the username or email already exists in the database
+        user = find_username(username)
+        email_user = find_email(email)
+
+        if (user and user['user_id'] != user_id) or (email_user and email_user['user_id'] != user_id):
+            flash("Username or email already taken.")
+            return redirect(url_for('ChangeProfile'))
+        else:
+            # Update the user's profile in the database
+            if update_user(user_id, username, password, email):
+                flash("Profile updated successfully!")
+                return redirect(url_for('login'))
+            else:
+                flash("Error updating profile. Please try again.")
+                return redirect(url_for('ChangeProfile'))
+
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Error in field '{field}': {error}")
+    return render_template('ChangeProfile.html', form=form)
 
 @app.route('/admin_dashboard', endpoint='admin_dashboard')
 # @fresh_login_required(timeout_minutes=5)
