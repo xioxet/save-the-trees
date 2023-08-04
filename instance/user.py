@@ -2,6 +2,8 @@ from instance import mydb, mycursor
 import datetime
 from secrets import token_urlsafe
 import email_handler
+import bcrypt
+import random
 
 
 token_expiration_time = datetime.timedelta(minutes=5)
@@ -14,6 +16,20 @@ def find_username(username):
     print(f'data = {data}')
     if len(data) == 0: return None
     return data[0]
+
+def find_email(email):
+    query = "SELECT * FROM users WHERE email = %s"
+    mycursor.execute(query, (email,))
+    data = [row for row in mycursor]
+    print(f'data = {data}')
+    if len(data) == 0: return None
+    return data[0]
+
+def get_user_id(username):
+    query = "SELECT user_id FROM users WHERE username = %s"
+    mycursor.execute(query, (username,))
+    user_id = mycursor.fetchone()
+    return user_id
 
 def find_user_verify(username):
     query = "SELECT user_id, password, email, is_verified FROM users WHERE username = %s"
@@ -45,13 +61,30 @@ def add_user(username, password, email):
 
 def delete_user(username):
     query = "DELETE FROM users WHERE username = %s"
-    mycursor.execute(query, (username,))
+    mycursor.execute(query, (str(username),))
     mydb.commit()
 
-def update_user(username, password, email):
-    query = "UPDATE FROM users WHERE username = %s"  # Corrected column name to username
-    mycursor.execute(query, (username,))
+
+def update_user(user_id, username, password, email):
+    if username:
+        query_update_username = "UPDATE users SET username = %s WHERE user_id = %s"
+        mycursor.execute(query_update_username, (username, user_id))
+
+    if password:
+        # Hash and salt the password
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        query_update_password = "UPDATE users SET password = %s WHERE user_id = %s"
+        mycursor.execute(query_update_password, (hashed_password, user_id))
+
+    if email:
+        query_update_email = "UPDATE users SET email = %s WHERE user_id = %s"
+        mycursor.execute(query_update_email, (email, user_id))
+
     mydb.commit()
+    return True
+
+
+
 
 def check_role(username):
     query = "SELECT role FROM users WHERE username = %s"
@@ -125,3 +158,28 @@ def verify_pin(verification_pin):
     delete_query = "UPDATE users SET verification_pin = '' WHERE username = %s"
     mycursor.execute(delete_query, (username,))
     mydb.commit()
+
+
+#delete verification
+def add_delete_verification_pin(username, delete_verification_pin):
+    query = "UPDATE users SET delete_verification_pin = %s WHERE username = %s"
+    mycursor.execute(query, (username, delete_verification_pin))
+    mydb.commit()
+
+def verify_del_pin(delete_verification_pin):
+    query = "SELECT username FROM users WHERE delete_verification_pin = %s"
+    mycursor.execute(query, (delete_verification_pin,))
+    result = mycursor.fetchone()
+
+    if result:
+        username = result[0]
+        # Now that the user's delete verification pin is verified, delete the verification_pin
+        delete_query = "UPDATE users SET verification_pin = '' WHERE username = %s"
+        mycursor.execute(delete_query, (username,))
+        mydb.commit()
+
+        return True
+    else:
+        raise Exception("Invalid verification pin.")
+
+
