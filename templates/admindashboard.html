@@ -18,7 +18,42 @@
         <span>S</span><span>A</span><span>V</span><span>E</span> <span>T</span><span>H</span><span>E</span> <span>T</span><span>R</span><span>E</span><span>E</span><span>S</span>
       </div>
     </div>
-        <span class="navbar-text">Welcome, {{ username }}!</span><br>
+        <div class="container mt-4">
+          <div class="row">
+            <!-- First Card -->
+            <div class="col-md-4 mb-4">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">View orders</h5>
+                  <p class="card-text">View all the orders that have been submitted and mark them as fulfliled. There are {{order_count}} unfulfilled orders.</p>
+                  <a href="{{url_for('orders_view')}}" class="btn btn-primary">Orders</a>
+                </div>
+              </div>
+            </div>
+        
+            <!-- Second Card -->
+            <div class="col-md-4 mb-4">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">View contact</h5>
+                  <p class="card-text">View all contact form responses and send replies. There are {{contact_count}} responses with no replies. </p>
+                  <a href="{{url_for('contact_view')}}" class="btn btn-primary">Contact</a>
+                </div>
+              </div>
+            </div>
+        
+            <!-- Third Card -->
+            <div class="col-md-4 mb-4">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">View users</h5>
+                  <p class="card-text">See an overview of all the users. There are {{user_count}} registered users.</p>
+                  <a href="page3.html" class="btn btn-primary">Users</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
   </div>
     </body>
 {% endblock %}

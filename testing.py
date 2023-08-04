@@ -1,3 +1,5 @@
+from instance.contact import *
 from instance.user import *
+from instance.orders import *
 
-delete_user_from_database('alprazolam')
+print(get_user_view())

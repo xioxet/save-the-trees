@@ -27,6 +27,13 @@ def get_anonymous_orders(anonymous):
     data = [row for row in mycursor]
     return data
 
+def get_order_count():
+    query = "SELECT COUNT(*) FROM orders WHERE order_satisfied = 0"
+    mycursor.execute(query)
+    data = [row for row in mycursor]
+    return data[0][0]
+
+
 def search_orders(id):
     select_query = ("SELECT * FROM orders "
                     "WHERE order_id = %s")

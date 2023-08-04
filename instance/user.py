@@ -39,11 +39,18 @@ def get_user_id(username):
     return user_id
 
 def find_user_verify(username):
-    query = "SELECT user_id, password, email, is_verified FROM users WHERE username = %s"
+    query = "SELECT user_id, password, email, is_verified, role FROM users WHERE username = %s"
     mycursor.execute(query, (username,))
     user_details = mycursor.fetchone()
     return user_details
 
+def get_user_count():
+    mycursor.execute("SELECT COUNT(*) FROM users")
+    return [row for row in mycursor][0][0]
+
+def get_user_view():
+    mycursor.execute("SELECT user_id, username, email FROM users")
+    return [row for row in mycursor]
 
 def add_user(username, password, email):
     #Insert the new row with the calculated User ID

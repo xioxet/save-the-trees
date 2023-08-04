@@ -219,9 +219,10 @@ def contact_form():
     return render_template("contact_form.html", form=form)
 
 # i am SO SORRY FOR THIS ENTIRE FUNCTION...
+@app.route('/contact_view')
 @app.route('/contact_view/<string:replied>')
 @role_required('admin')
-def contact_view(replied):
+def contact_view(replied='false'):
     replied = replied.lower() == 'true'  
     if replied:
         data = list()
@@ -234,6 +235,11 @@ def contact_view(replied):
     return render_template('contact_view.html', data=data, replied=replied)
 
 # wew lad.
+
+@app.route('/user_view')
+@role_required('admin')
+def user_view():
+    return render_template('user_view.html', data=get_user_view())
 @app.route('/orders_view/')
 @app.route('/orders_view/<string:satisfied>')
 @role_required('admin')
@@ -303,13 +309,13 @@ def login():
         user_details = find_user_verify(username)
         print(username)
         if user_details:
-            user_id, stored_password_hash, email, is_verified = user_details
+            user_id, stored_password_hash, email, is_verified, role = user_details
             if bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
                 session['user_id'] = user_id
                 session['username'] = username
                 print(session['username'])
                 session['email'] = email
-                session['role'] = 'admin' if user_id == 3 else 'user'
+                session['role'] = role
                 if is_verified == 'TRUE':
                     if session['role'] == 'admin':
                         return redirect(url_for('admin_dashboard'))
@@ -323,8 +329,8 @@ def login():
                         # The pin has expired, generate a new one and send it to the user's email
                         verification_pin = generate_verification_pin()
                         add_verification_pin(username, verification_pin)
-                        send_email(email, "Login Verification for Save The Trees",
-                                   f"Your 6-digit verification pin is: {verification_pin}")
+                        #send_email(email, "Login Verification for Save The Trees",
+                        #           f"Your 6-digit verification pin is: {verification_pin}")
                         print(verification_pin)
                         # Redirect the user to the verification page to enter the pin
                         flash(
@@ -482,7 +488,7 @@ def ChangeProfile():
 @role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def admin_dashboard():
     if 'username' in session and session['role'] == 'admin':
-        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_admin.html')
+        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_admin.html', user_count = get_user_count(), order_count = get_order_count(), contact_count = get_contact_count())
     else:
         flash('You do not have permission to access the admin dashboard.')
         return redirect(url_for('login'))

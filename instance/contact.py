@@ -18,6 +18,12 @@ def get_contact(replied=False):
     data = [row for row in mycursor]
     return data
 
+def get_contact_count():
+    query = "SELECT COUNT(*) FROM contact WHERE contact_responded = 0"
+    mycursor.execute(query)
+    data = [row for row in mycursor]
+    return data[0][0]
+
 def search_contact(contact_id):
     select_query = "SELECT * FROM contact WHERE contact_id = %s"
     mycursor.execute(select_query, (contact_id,))
