@@ -88,8 +88,6 @@ def update_user(user_id, username, password, email):
     return True
 
 
-
-
 def check_role(username):
     query = "SELECT role FROM users WHERE username = %s"
     mycursor.execute(query, (username,))
@@ -102,9 +100,9 @@ def check_role(username):
 
 #signup_verification
 def add_verification_token(verification_token, username, password, email):
-    date = datetime.datetime.now().date().isoformat()
-    query = "INSERT INTO users (token, username, password, email, date) VALUES (%s, %s, %s, %s, %s)"
-    mycursor.execute(query, (verification_token, username, password, email, date))
+    date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    query = "INSERT INTO users (token, username, password, email, date, role) VALUES (%s, %s, %s, %s, %s, %s)"
+    mycursor.execute(query, (verification_token, username, password, email, date, "user"))
     mydb.commit()
 
 
@@ -117,15 +115,15 @@ def verify_token(token):
     except:
         raise Exception("Invalid verification.")
 
+    date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
     date_difference = datetime.datetime.now() - date
 
-    if date_difference < token_expiration_time:
+    if date_difference > token_expiration_time:
         raise Exception("Timed out.")
 
     else:
-        add_user(username, password, email)
-        query = "DELETE FROM users WHERE token = %s"
-        mycursor.execute(query, (token,))
+        query = "UPDATE users SET is_verified = 'TRUE' WHERE username = %s"
+        mycursor.execute(query, (username,))
         mydb.commit()
 
 

@@ -18,6 +18,7 @@ from json import dumps, loads
 from instance.user import *
 import stripe
 #
+import html
 from email_handler import *
 from roles import *
 import bcrypt
@@ -120,7 +121,7 @@ def process_payment_trees():
 
         # prepare variables
         email = find_username(get_username())[3]
-        fname, lname, qty, message = session["payment_info"]["payment_fname"], session["payment_info"]["payment_lname"], session["payment_info"]["payment_quantity"], session["payment_info"]["payment_message"]
+        fname, lname, qty, message = html.escape(session["payment_info"]["payment_fname"]), html.escape(session["payment_info"]["payment_lname"]), html.escape(session["payment_info"]["payment_quantity"]), html.escape(session["payment_info"]["payment_message"])
         if "payment_anonymous" in session["payment_info"].keys():
             anonymous = 1
         else: anonymous = 0
@@ -202,11 +203,11 @@ def contact_form():
     form = ContactForm()
     if form.validate_on_submit():
         add_contact(
-            request.form["contact_email"],
-            request.form["contact_fname"],
-            request.form["contact_lname"],
-            request.form["contact_category"],
-            request.form["contact_message"],
+            html.escape(request.form["contact_email"]),
+            html.escape(request.form["contact_fname"]),
+            html.escape(request.form["contact_lname"]),
+            html.escape(request.form["contact_category"]),
+            html.escape(request.form["contact_message"]),
             0
         )
         flash('Your inquiry has been received! We will reply shortly.')
@@ -268,7 +269,7 @@ def contact_reply(id):
 
     data = search_contact(id)
     form = ContactResponseForm()
-    message = data[0][5]
+    message = html.escape(data[0][5])
     email = data[0][1]
     name = f'{data[0][2]} {data[0][3]}'
 
@@ -389,7 +390,6 @@ def signup():
         if user or email_user:
             flash("Credentials not unique.")
             return redirect(url_for('signup'))
-
         else:
             verification_token = token_urlsafe()
             salt = bcrypt.gensalt()
@@ -423,6 +423,7 @@ def verification_token(token=None):
 # @fresh_login_required(timeout_minutes=5)
 @role_required('user', fail_redirect="login", flash_message="Please log in.")
 def dashboard():
+    print(session)  
     if 'username' in session and session['role'] == 'user':
         print('below is username')
         print(session['username'])

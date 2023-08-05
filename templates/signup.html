@@ -25,7 +25,7 @@
 .progress-bar-success{
     background-color: #02b502;
 }
-}
+
 .fa-eye{
     color: #022255;
     cursor: pointer;
@@ -46,6 +46,15 @@
     <form method="POST" action="" onsubmit="return validatePassword();">
       {{ form.csrf_token }}
       <h1>Signup ◐</h1>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-danger m-auto">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
       <div class='form-group'>
         <label>Username</label>
         {{ form.username(class="form-control", placeholder="Enter username") }}

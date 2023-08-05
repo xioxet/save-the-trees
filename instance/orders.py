@@ -1,4 +1,5 @@
 from instance import mydb, mycursor
+import html
 # by v.
 
 
@@ -33,6 +34,8 @@ def get_order_count():
     data = [row for row in mycursor]
     return data[0][0]
 
+def escape_everything():
+    query = "SELECT "
 
 def search_orders(id):
     select_query = ("SELECT * FROM orders "
