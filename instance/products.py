@@ -126,8 +126,12 @@ def sell_product(purchase_id, item_no, prod_id, amount):
 
 
 def log_purchase(cart_data, total_price: int, user_id: int = None, address: str = "test address"):
-    mycursor.execute('SELECT count(*) from purchases')
-    purchase_id = mycursor.fetchone()[0] + 1
+    mycursor.execute('SELECT max(purchase_id) from purchases')
+    purchase_id = mycursor.fetchone()[0]
+    if purchase_id == None:
+        purchase_id = 1
+    else:
+        purchase_id += 1
 
     log_query = ('INSERT INTO purchases (purchase_id, total_price, address, user_id)'
                  'VALUES (%s, %s, %s, %s)')
@@ -155,6 +159,14 @@ def get_purchase_log(purchase_id: int = "*"):
         purchase_details = mycursor.fetchall()
         return purchase_log, purchase_details
     return None
+
+
+def undo_purchase(purchase_id: int):
+    mycursor.execute("SELECT purchase_id FROM purchases WHERE purchase_id = %s", (purchase_id,))
+    if mycursor.fetchone():  # the purchase was found
+        mycursor.execute("DELETE FROM purchase_detail WHERE purchase_id = %s", (purchase_id,))
+        mycursor.execute("DELETE FROM purchases WHERE purchase_id = %s", (purchase_id,))
+    pass
 
 
 def update_field(prod_id, field, value):
