@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, BooleanField, SubmitField, IntegerField
-from wtforms.validators import DataRequired, Email, NumberRange, Length
+from wtforms import FileField, TextAreaField, IntegerField, StringField, BooleanField, SubmitField
+from wtforms.validators import DataRequired, NumberRange, Length
+
 
 # classes by v.
 class PaymentForm_1(FlaskForm):

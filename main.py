@@ -6,6 +6,7 @@ from flask_limiter.util import get_remote_address
 from payment import *
 from contact import *
 from login import *
+from events import *
 from product_form import SearchForm
 #
 from secrets import token_urlsafe
@@ -568,6 +569,15 @@ def events():
     print(events)
     return render_template('events.html', events=events)
 
+
+# Read operation - Display all events
+@app.route('/completed_events')
+def c_events():
+    mycursor.execute("SELECT * FROM events WHERE completed = 1;")
+    events = mycursor.fetchall()
+    print(events)
+    return render_template('completed_events.html', events=events)
+
 # Create operation - Add a new event
 @app.route('/event_add', methods=['GET', 'POST'])
 def event_add():
@@ -622,11 +632,25 @@ def delete(event_id):
     mydb.commit()
     return redirect('/events')
 
+def is_user_registered(event_id, username):
+    try:
+        mycursor.execute("SELECT COUNT(*) FROM event_registrations WHERE event_id = %s AND username = %s", (event_id, username))
+        count = mycursor.fetchone()[0]
+        return count > 0
+    
+    except mysql.connector.Error as err:
+        print(f"Error checking user registration: {err}")
+        return False
+
+def register_user_for_event(event_id, username):
+        mycursor.execute("INSERT INTO event_registrations (event_id, username) VALUES (%s, %s)", (event_id, username))
+        mydb.commit()
+        flash("Registration successful!", "success")
+
 @app.route('/event_register/<int:event_id>', methods=['GET', 'POST'])
-@role_required('user', 'login', 'Please log in.')
 def event_register(event_id):
 
-    # Fetch the event details from the database
+
     mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
     event = mycursor.fetchone()
 
@@ -634,21 +658,117 @@ def event_register(event_id):
         return 'Event not found', 404
 
     if request.method == 'POST':
-        # Get the user ID from the session
-        user_id = session['user_id']
+        username = get_username()
+        email = find_email(username)
 
-        # Insert the registration data into the event_registrations table
-        mycursor.execute("INSERT INTO event_registrations (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
-        mydb.commit()
+    # Check if the user is already registered for the event
+        if is_user_registered(event_id, username):
+            flash('You are already registered for this event.')
+            return redirect(url_for('dashboard'))
 
+    # Register the user for the event
+        register_user_for_event(event_id, username)
         flash('You have successfully registered for the event.')
-        return redirect(url_for('events'))
+        send_email(email, 'Successfully Registered for Event', 'You have successfully registered for the event.')
+        return redirect(url_for('dashboard'))
 
     return render_template('event_register.html', event=event)
 
+
 @app.route('/user_events')
 def user_events():
-    return render_template('eventsuser.html')
+    mycursor.execute("SELECT * FROM events")
+    events = mycursor.fetchall()
+    print(events)
+    return render_template('eventsuser.html', events=events)
+
+
+@app.route('/event_review/<int:event_id>', methods=['GET', 'POST'])
+def event_review(event_id):
+    form = ReviewForm()
+    if form.validate_on_submit():
+        username = session['username']
+        rating = form.rating.data
+        comment = form.comment.data
+        image = None
+
+        # Upload image and get its path or link
+        if form.image.data:
+            image = save_uploaded_image(form.image.data)  # Implement this function to save the uploaded image and return its path or link
+
+        # Save the review to the database
+        mycursor.execute("INSERT INTO reviews (event_id, username, rating, comment, image) VALUES (%s, %s, %s, %s, %s)", (event_id, username, rating, comment, image))
+        mydb.commit()
+
+        flash('Review submitted successfully!')
+        return redirect(url_for('dashboard'))
+    return render_template('event_review.html', form=form, event_id=event_id)
+
+def add_review(event_id, username, rating, comment, image):
+    try:
+        # Insert the review data into the reviews table
+        insert_review_query = "INSERT INTO reviews (event_id, username, rating, comment, image) VALUES (%s, %s, %s, %s, %s)"
+        mycursor.execute(insert_review_query, (event_id, username, rating, comment, image))
+
+        # Commit the changes to the database
+        mydb.commit()
+
+        # Close the cursor (do not close the connection as it's reused)
+
+    except mysql.connector.Error as e:
+        print(f"Error adding review: {e}")
+        raise
+
+def get_event_reviews(event_id):
+    try:
+        # Get the existing database connection
+
+        # Query the reviews table for reviews of the specified event_id
+        select_reviews_query = "SELECT * FROM reviews WHERE event_id = %s"
+        mycursor.execute(select_reviews_query, (event_id,))
+        reviews = []
+
+        # Fetch the review data and store it in a list of dictionaries
+        for review in mycursor.fetchall():
+            review_data = {
+                "id": review[0],
+                "event_id": review[1],
+                "username": review[2],
+                "rating": review[3],
+                "comment": review[4],
+                "image": review[5]
+            }
+            reviews.append(review_data)
+
+        # Close the cursor (do not close the connection as it's reused)
+
+        return reviews
+
+    except mysql.connector.Error as e:
+        print(f"Error retrieving event reviews: {e}")
+        raise
+
+def save_uploaded_image(image_data):
+    try:
+        image_folder = "C:\\Users\\user\\Desktop\\save-the-trees\\static\\images"
+
+        # Generate a unique filename for the image to avoid overwriting existing images
+        # You can use the UUID library to generate a unique filename
+        import uuid
+        filename = f"{uuid.uuid4().hex}.jpg"
+
+        # Save the image to the specified folder
+        image_path = os.path.join(image_folder, filename)
+        image_data.save(image_path)
+
+        # Close the cursor (do not close the connection as it's reused)
+
+        return image_path
+
+    except Exception as e:
+        print(f"Error saving uploaded image: {e}")
+        raise
+
 
 @app.route("/products")
 def products():

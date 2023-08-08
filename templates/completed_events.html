@@ -108,32 +108,10 @@
                 {% endif %}
             </td>
             <td>
-                <a href="/edit/{{ event[0] }}" class="edit-button">Edit</a>
-                <form action="/delete/{{ event[0] }}" method="POST" onsubmit="return confirmDelete()">
-                    <button type="submit" class="delete-button">Delete</button>
-                </form>
+                <a href="/event_review/{{ event[0] }}" class="edit-button">Add review</a>
             </td>
         </tr>
         {% endfor %}
     </table>
-    <a href="/event_add" class="button">Add Event</a>
-
-<!-- Add the following code to the event_details.html template -->
-<h2>Reviews</h2>
-{% if reviews %}
-  <ul>
-    {% for review in reviews %}
-      <li>
-        <strong>{{ review.username }}</strong> - Rating: {{ review.rating }}/5<br>
-        {{ review.comment }}<br>
-        {% if review.image %}
-          <img src="{{ review.image }}" alt="Review Image" height="100">
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No reviews yet.</p>
-{% endif %}
 </body>
 </html>
