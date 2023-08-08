@@ -112,6 +112,9 @@
 
                 }
             }
+            elif(this.statusCode == 429){
+                setTimeout(search, 1000)
+            }
         };
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send("search_name="+`${search_name}`);

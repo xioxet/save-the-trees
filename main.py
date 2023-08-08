@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
 from secrets import token_urlsafe
 from product_form import SearchForm
@@ -136,7 +138,10 @@ def process_payment_trees():
 # almost identical to above function but Uhhhhhhhhhh
 @app.route('/cart_get', methods=['GET','POST'])
 def get_cart():
-    session['cart'] = loads(request.json.get("cart"))
+    try:
+        session['cart'] = loads(request.json.get("cart"))
+    except json.JSONDecodeError:
+        return redirect("/merchandise")
     cart_data = session['cart']
     stripe_price = 0
     for product in cart_data:
@@ -161,6 +166,8 @@ def process_checkout():
     except ValueError:  #
         return redirect('/oops')
     cart_data = session['cart']
+    purchase_status = None
+
     # calculate cost
     calc_price = 0
     for product in cart_data:
@@ -170,6 +177,7 @@ def process_checkout():
     if calc_price != Decimal(amount):
         return redirect("/oops")
     try:
+
         charge = stripe.Charge.create(
             amount=int(amount),
             currency='sgd',
@@ -177,13 +185,14 @@ def process_checkout():
             description='Payment for Flask App'
         )
         purchase_status = product_server.log_purchase(cart_data, calc_price, session['user_id'], 'test address')
-        print(purchase_status)
+        print(purchase_status)  # returns purchase id
         print(purchase_status == True)
         # commit the charge or whatever IDK
     
     except stripe.error.CardError as e:
+        if purchase_status:
+            product_server.undo_purchase(purchase_status)
         return render_template('payment_error.html', error_message=e)
-    
     else:
         if purchase_status:  # did not None or error message so executed successfully
             return render_template('payment_success.html', charge=charge, clear_cart=True)
@@ -278,10 +287,10 @@ def contact_reply(id):
         response = request.form["contact_response"]
         set_responded(id, response)
         flash("You have successfully responded to the message!")
-        send_email(email, 
-                   f"Response from Save The Trees", 
-                   f"""Your contact submission: {message}:\nOur response: {response}
-                    """)
+        # send_email(email,
+        #            f"Response from Save The Trees",
+        #            f"""Your contact submission: {message}:\nOur response: {response}
+        #             """)
         return redirect('/contact_view/false')
     return render_template('contact_response.html', message=message, email=email, name=name, form=form)
 
@@ -331,8 +340,8 @@ def login():
                         # The pin has expired, generate a new one and send it to the user's email
                         verification_pin = generate_verification_pin()
                         add_verification_pin(username, verification_pin)
-                        #send_email(email, "Login Verification for Save The Trees",
-                        #           f"Your 6-digit verification pin is: {verification_pin}")
+                        # send_email(email, "Login Verification for Save The Trees",
+                        #            f"Your 6-digit verification pin is: {verification_pin}")
                         print(verification_pin)
                         # Redirect the user to the verification page to enter the pin
                         flash(
@@ -396,8 +405,8 @@ def signup():
             salt = bcrypt.gensalt()
             password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
             add_verification_token(verification_token, username, password_hash, email)
-            send_email(email, "Verification email for Save The Trees",
-                       f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
+            # send_email(email, "Verification email for Save The Trees",
+            #            f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
             flash("You have been sent a verification link in an email.")
             return redirect(url_for('verification_token'))
     else:
@@ -780,11 +789,11 @@ def prod_search_api():
     if request.method != "POST":
         return redirect("/products")
     print(request.form)
-    result = product_server.search_product(["*"])
+    result = product_server.search_product([1], ["onsale"])
     print(result)
     results = []
     for product in result:
-        if request.form["search_name"] in product[1]:
+        if request.form["search_name"] in product[1] and product[4] > 0:
             results.append((product[0], product[1], float(product[2]), product[3], product[4]))
     return dumps({"result": results})  # product ID, name, unit_price, description, stock
 
