@@ -38,7 +38,7 @@ def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
         return False
 
 
-def search_product(search_query: list = ["*"], search_fields=("prod_id",), ret_fields: Union[str, tuple] = "*"):
+def search_product(search_query: list = (), search_fields=("prod_id",), ret_fields: Union[str, tuple] = "*"):
     searchable_columns = ("prod_id", "prod_name", "unit_price", "description", "stock", "amt_sold", "onsale")
 
     if ret_fields == "*":
@@ -57,15 +57,25 @@ def search_product(search_query: list = ["*"], search_fields=("prod_id",), ret_f
         return []  # invalid fields type
 
     filter_string = ""
-    for i in range(len(search_fields)):
-        search_field = search_fields[i]
-        if search_field in searchable_columns and len(search_query) > i:
-            if search_query[i] == "*":
-                search_query.pop(i)
-            elif i == 0:
-                filter_string += f"WHERE {search_field} = %s "
+    this_index = 0
+    for search_field in search_fields:
+        if search_field in searchable_columns and len(search_query) > this_index:
+            if search_query[this_index] == "":
+                search_query[this_index] = "*"
+            if search_query[this_index] == "*":
+                search_query.pop(this_index)
+                continue
+            elif this_index == 0:
+                filter_string += f"WHERE {search_field} "
             else:
-                filter_string += f"AND {search_field} = %s "
+                filter_string += f"AND {search_field} "
+            if search_field in ("prod_name", "description"):  # string column, check for query within the text
+                filter_string += "LIKE concat('%', %s, '%') "
+            else:
+                filter_string += "= %s "
+
+            this_index += 1
+
         else:
             return []  # invalid search field or missing queries
 
@@ -128,7 +138,7 @@ def sell_product(purchase_id, item_no, prod_id, amount):
 def log_purchase(cart_data, total_price: int, user_id: int = None, address: str = "test address"):
     mycursor.execute('SELECT max(purchase_id) from purchases')
     purchase_id = mycursor.fetchone()[0]
-    if purchase_id == None:
+    if purchase_id is None:
         purchase_id = 1
     else:
         purchase_id += 1
@@ -189,20 +199,6 @@ def update_field(prod_id, field, value):
     pass
 
 
-def delete_product(prod_id):
-    products = search_product([prod_id], ret_fields=("prod_id",))
-    if len(products) > 0:
-        delete_query = "DELETE FROM products WHERE prod_id = %s"
-        try:
-            for product in products:
-                mycursor.execute(delete_query, (product[0],))
-        except Sql_error as err:
-            print("Something went wrong:", err)
-            mydb.rollback()
-        else:
-            commit_if_not_debug()
-
-
 if __name__ == "__main__":
     not_debug = False
 
@@ -238,11 +234,5 @@ if __name__ == "__main__":
 
     print("Read Purchase Log Test")
     print(get_purchase_log(2))
-
-    print("Delete Product Test, deleting product 2")
-    delete_product(2)
-    mycursor.execute('select * from products')
-    for test_product in mycursor.fetchall():
-        print(test_product)
 
     mydb.rollback()

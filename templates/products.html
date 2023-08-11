@@ -49,11 +49,12 @@
         var xhttp = new XMLHttpRequest();
         const search_name = document.getElementById("search_name").value
         xhttp.open("POST", "rest/products", true);
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("results").innerText = this.responseText;
-                console.log(JSON.parse(this.responseText))
-                let results = JSON.parse(this.responseText)["result"]
+        xhttp.addEventListener('load', (e) => {
+            console.log(xhttp.status);
+            if (xhttp.status == 200) {
+                document.getElementById("results").innerText = xhttp.responseText;
+                console.log(JSON.parse(xhttp.responseText))
+                let results = JSON.parse(xhttp.responseText)["result"]
                 document.getElementById("results").innerHTML = ""
                 for(i in results){
                     item = results[i]
@@ -112,10 +113,13 @@
 
                 }
             }
-            elif(this.statusCode == 429){
+            else if(xhttp.status == 429){
                 setTimeout(search, 1000)
             }
-        };
+            else if(xhttp.status == 413){
+                console.log("Too long!")
+            }
+        });
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send("search_name="+`${search_name}`);
 

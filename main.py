@@ -10,9 +10,8 @@ from contact import *
 from login import *
 from events import *
 from product_form import SearchForm
-#
-from secrets import token_urlsafe
-#
+import os.path
+import mysql.connector
 from instance.contact import *
 from instance.orders import *
 import instance.products as product_server
@@ -788,12 +787,26 @@ def products():
 def prod_search_api():
     if request.method != "POST":
         return redirect("/products")
-    print(request.form)
-    result = product_server.search_product([1], ["onsale"])
-    print(result)
+    request_size = int(request.headers.get("Content-Length"))
+    if request_size is None:
+        return "", 411
+    if request_size > 8192:
+        return "", 413
+    search_name = request.form.get("search_name")
+    if len(search_name) > 45:
+        return "None of our products have names with this many characters!", 413
+    result_name = product_server.search_product([1, search_name], ["onsale", "prod_name"])
+    result_descripion = product_server.search_product([1, search_name], ["onsale", "description"])
     results = []
-    for product in result:
-        if request.form["search_name"] in product[1] and product[4] > 0:
+    for product in result_name:
+        for i in range(len(result_descripion)):
+            if result_descripion[i][0] == product[0]:  # same product was searched up twice
+                result_descripion.pop(i)
+                break  # shouldn't have come up more than once in the same list, prod_id is unique
+        if product[4] > 0:
+            results.append((product[0], product[1], float(product[2]), product[3], product[4]))
+    for product in result_descripion:
+        if product[4] > 0:
             results.append((product[0], product[1], float(product[2]), product[3], product[4]))
     return dumps({"result": results})  # product ID, name, unit_price, description, stock
 
