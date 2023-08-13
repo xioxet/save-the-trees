@@ -570,6 +570,7 @@ def logout():
 from instance import mydb, mycursor
 
 # Read operation - Display all events
+@role_required('admin')
 @app.route('/events')
 def events():
     mycursor.execute("SELECT * FROM events")
@@ -587,6 +588,7 @@ def c_events():
     return render_template('completed_events.html', events=events)
 
 # Create operation - Add a new event
+@role_required('admin')
 @app.route('/event_add', methods=['GET', 'POST'])
 def event_add():
     if request.method == 'POST':
@@ -608,6 +610,7 @@ def event_add():
         return render_template('event_add.html')
 
 # Update operation - Edit an event
+@role_required('admin')
 @app.route('/event_edit/<int:event_id>', methods=['GET', 'POST'])
 def event_edit(event_id):
     mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
@@ -634,6 +637,7 @@ def event_edit(event_id):
         return 'Event not found', 404
 
 # Delete operation - Remove an event
+@role_required('admin')
 @app.route('/event_delete/<int:event_id>', methods=['POST'])
 def delete(event_id):
     mycursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
@@ -655,10 +659,9 @@ def register_user_for_event(event_id, username):
         mydb.commit()
         flash("Registration successful!", "success")
 
+@role_required('user', 'login', 'Please log in.')
 @app.route('/event_register/<int:event_id>', methods=['GET', 'POST'])
 def event_register(event_id):
-
-
     mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
     event = mycursor.fetchone()
 
@@ -690,12 +693,12 @@ def user_events():
     print(events)
     return render_template('eventsuser.html', events=events)
 
-
+@role_required('user')
 @app.route('/event_review/<int:event_id>', methods=['GET', 'POST'])
 def event_review(event_id):
     form = ReviewForm()
     if form.validate_on_submit():
-        username = session['username']
+        username = get_username()
         rating = form.rating.data
         comment = form.comment.data
         image = None
@@ -758,8 +761,8 @@ def get_event_reviews(event_id):
 
 def save_uploaded_image(image_data):
     try:
-        image_folder = "C:\\Users\\user\\Desktop\\save-the-trees\\static\\images"
-
+        image_folder = os.getcwd() + "\\static\\images"
+        print(image_folder)
         # Generate a unique filename for the image to avoid overwriting existing images
         # You can use the UUID library to generate a unique filename
         import uuid

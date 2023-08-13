@@ -61,8 +61,3 @@ class User:
 
     def get_password(self):
         return self.password
-
-
-users = {
-    "username": "password"
-}

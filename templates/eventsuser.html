@@ -2,6 +2,11 @@
 <html>
 <head>
     <title>Event List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/home.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,12 +82,35 @@
         .delete-button:hover {
             background-color: #da190b;
         }
-    </style>
-    <script>
-        function confirmDelete() {
-            return confirm("Are you sure you want to delete this event?");
+
+        .carousel-container {
+            width: 50%;
+            margin:auto;
+            margin-top:20px;
+            background-color:white;
+            border: 1px solid black;
+            border-radius: 20px;
+            display: flex;
+            padding: 20px;
         }
-    </script>
+
+        .event-image {
+            width:50%;
+        }
+
+        .event-text-container {
+            width:50%;
+        }
+
+        .event-title {
+            text-align:center;
+        }
+
+        .event-description {
+            text-align:center;
+        }
+
+    </style>
 </head>
 <body>
     <h1>Event List</h1>
@@ -113,5 +141,42 @@
         </tr>
         {% endfor %}
     </table>
+    <div class="carousel-container">
+        <img class="event-image" src="{{url_for('static', filename='images/' + events[0][5])}}">
+        <div class="mx-2 event-text-container">
+            <h1 class="mx-auto event-title">{{events[0][1]}}</h1>
+            <div class="mx-2 event-description">{{events[0][3]}}</div>
+            <br>
+            <div class="mx-2 row">
+                <button class="btn btn-success next-button mx-2" onclick="next_event()">Next</button>
+                <button class="btn btn-success previous-button mx-2">Previous</button>
+            </div>
+        </div>
+    </div>
 </body>
+<script>
+    var events = {{events|tojson}};
+    console.log(events)
+    var index = 0;
+    
+    var event_image = document.getElementsByClassName('event-image')[0];
+    var event_title = document.getElementsByClassName('event-title')[0];
+    var event_description = document.getElementsByClassName('event-description')[0];
+    
+    function next_event() {
+        index = (index + 1) % events.length;
+        console.log(events[index])
+        event_image.src = 'static/images/' + events[index][5]
+        event_title.innerText = events[index][1]
+        event_description.innerText = events[index][3]
+    }
+
+    function next_event() {
+        index = (index - 1) % events.length;
+        console.log(events[index])
+        event_image.src = 'static/images/' + events[index][5]
+        event_title.innerText = events[index][1]
+        event_description.innerText = events[index][3]
+    }
+</script>
 </html>

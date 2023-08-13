@@ -1,5 +1,3 @@
-from instance.contact import *
-from instance.user import *
-from instance.orders import *
+import os
 
-print(get_user_view())
+print(os.getcwd() + "\\static\\images")
