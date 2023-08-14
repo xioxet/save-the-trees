@@ -149,7 +149,7 @@
             <br>
             <div class="mx-2 row">
                 <button class="btn btn-success next-button mx-2" onclick="next_event()">Next</button>
-                <button class="btn btn-success previous-button mx-2">Previous</button>
+                <button class="btn btn-success previous-button mx-2" onclick="previous_event()">Previous</button>
             </div>
         </div>
     </div>
@@ -158,21 +158,23 @@
     var events = {{events|tojson}};
     console.log(events)
     var index = 0;
-    
+    console.log(index);  
     var event_image = document.getElementsByClassName('event-image')[0];
     var event_title = document.getElementsByClassName('event-title')[0];
     var event_description = document.getElementsByClassName('event-description')[0];
     
     function next_event() {
         index = (index + 1) % events.length;
+        console.log(index)
+        console.log('z')
         console.log(events[index])
         event_image.src = 'static/images/' + events[index][5]
         event_title.innerText = events[index][1]
         event_description.innerText = events[index][3]
     }
 
-    function next_event() {
-        index = (index - 1) % events.length;
+    function previous_event() {
+        index = (index + events.length - 1) % events.length;
         console.log(events[index])
         event_image.src = 'static/images/' + events[index][5]
         event_title.innerText = events[index][1]
