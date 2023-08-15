@@ -26,6 +26,8 @@ from roles import *
 import bcrypt
 from decimal import Decimal
 
+from instance import mydb, mycursor
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = token_urlsafe()
 limiter = Limiter(
@@ -47,7 +49,10 @@ def main():
             'message': message
         }
         leaderboard_entries.append(entry)
-    return render_template("home.html", entries=leaderboard_entries)
+    
+    mycursor.execute("SELECT * FROM events")
+    events = mycursor.fetchall()
+    return render_template("home.html", entries=leaderboard_entries, events=events)
 
 @app.route('/about')
 def about():
@@ -564,10 +569,6 @@ def del_verification():
 def logout():
     session.clear()
     return redirect(url_for('main'))
-
-
-#joef
-from instance import mydb, mycursor
 
 # Read operation - Display all events
 @role_required('admin')

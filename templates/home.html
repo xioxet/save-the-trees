@@ -3,6 +3,34 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <style>
+    .carousel-container {
+            width: 50%;
+            margin:auto;
+            margin-top:20px;
+            background-color:white;
+            border: 1px solid black;
+            border-radius: 20px;
+            display: flex;
+            padding: 20px;
+        }
+
+        .event-image {
+            width:50%;
+        }
+
+        .event-text-container {
+            width:50%;
+        }
+
+        .event-title {
+            text-align:center;
+        }
+
+        .event-description {
+            text-align:center;
+        }
+  </style>
   <link rel="stylesheet" href='static/home.css'>
   <div class="home_body">
     <img src="{{url_for('static', filename='images/vector_bg.png')}}">
@@ -76,7 +104,47 @@
   </div>
 </div>
 
+<div class="carousel-container">
+  <img class="event-image" src="{{url_for('static', filename='images/' + events[0][5])}}">
+  <div class="mx-2 event-text-container">
+      <h1 class="mx-auto event-title">{{events[0][1]}}</h1>
+      <div class="mx-2 event-description">{{events[0][3]}}</div>
+      <br>
+      <div class="mx-2 row">
+          <button class="btn btn-success next-button mx-2" onclick="next_event()">Next</button>
+          <button class="btn btn-success previous-button mx-2" onclick="previous_event()">Previous</button>
+      </div>
+  </div>
+</div>
+</body>
+
 <script>
+  var events = {{events|tojson}};
+  console.log(events)
+  var index = 0;
+  console.log(index);  
+  var event_image = document.getElementsByClassName('event-image')[0];
+  var event_title = document.getElementsByClassName('event-title')[0];
+  var event_description = document.getElementsByClassName('event-description')[0];
+
+  function next_event() {
+    index = (index + 1) % events.length;
+    console.log(index)
+    console.log('z')
+    console.log(events[index])
+    event_image.src = 'static/images/' + events[index][5]
+    event_title.innerText = events[index][1]
+    event_description.innerText = events[index][3]
+  }
+
+  function previous_event() {
+    index = (index + events.length - 1) % events.length;
+    console.log(events[index])
+    event_image.src = 'static/images/' + events[index][5]
+    event_title.innerText = events[index][1]
+    event_description.innerText = events[index][3]
+  }
+
   function dismiss(div) {
     console.log(div);
     div.style.display = "none";
