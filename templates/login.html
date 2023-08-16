@@ -1,10 +1,9 @@
 {% extends "form_base.html" %}
-
 {% block form %}
-
     <form method="POST" action="">
       {{ form.csrf_token }}
       <h1>Login ◐</h1>
+
       {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="alert alert-danger m-auto">
@@ -14,6 +13,8 @@
         </div>
       {% endif %}
       {% endwith %}
+      <br>
+
       <div class='form-group'>
         <label>Username</label>
         {{ form.username(class="form-control", placeholder="Enter username") }}
@@ -23,7 +24,19 @@
         <label>Password</label>
         {{ form.password(type="password", class="form-control", placeholder="Enter password") }}
       </div>
-        {{ form.submit(class="btn btn-success") }}<br>
-        <a href='/signup'>Sign up</a>
+
+        {{ form.submit(class="btn btn-success") }}
     </form>
+    <div>
+      Don't have an account?
+      <a href="{{ url_for('signup') }}">
+        Sign Up
+      </a>
+    </div>
+    <div>
+      <a href="{{ url_for('ForgotPassword') }}">
+        Forgot Password?
+      </a>
+    </div>
 {% endblock %}
+
