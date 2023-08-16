@@ -103,7 +103,7 @@
     {% endfor %}
   </div>
 </div>
-
+{% if events_len > 0 %}
 <div class="carousel-container">
   <img class="event-image" src="{{url_for('static', filename='images/' + events[0][5])}}">
   <div class="mx-2 event-text-container">
@@ -116,6 +116,7 @@
       </div>
   </div>
 </div>
+{% endif %}
 </body>
 
 <script>

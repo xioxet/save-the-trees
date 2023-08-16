@@ -12,8 +12,6 @@ not_debug = True
 def commit_if_not_debug():
     if not_debug:
         mydb.commit()
-    else:
-        print("Modification query executed (NOT COMMITTED)")
 
 
 def add_product(prod_id, prod_name, unit_price, description, stock=0, onsale=0):
@@ -66,11 +64,11 @@ def search_product(search_query: list = (), search_fields=("prod_id",), ret_fiel
                 search_query.pop(this_index)
                 continue
             elif this_index == 0:
-                filter_string += f"WHERE {search_field} "
+                filter_string += f"WHERE LOWER({search_field}) "
             else:
-                filter_string += f"AND {search_field} "
+                filter_string += f"AND LOWER({search_field}) "
             if search_field in ("prod_name", "description"):  # string column, check for query within the text
-                filter_string += "LIKE concat('%', %s, '%') "
+                filter_string += "LIKE LOWER(concat('%', %s, '%')) "
             else:
                 filter_string += "= %s "
 
@@ -80,7 +78,6 @@ def search_product(search_query: list = (), search_fields=("prod_id",), ret_fiel
             return []  # invalid search field or missing queries
 
     select_query = f"SELECT {fields_string} FROM products {filter_string}"
-    print(select_query)
     mycursor.execute(select_query, search_query)
     return mycursor.fetchall()  # List of tuples of fields for each result matched
 
@@ -89,7 +86,6 @@ def add_stock(prod_id, stock):
     products = search_product([prod_id], ret_fields=("prod_id",))
     if len(products) > 0:
         update_query = "UPDATE products SET stock = stock + %s WHERE prod_id = %s"
-        print(products)
         try:
             for product in products:
                 mycursor.execute(update_query, (stock, product[0]))

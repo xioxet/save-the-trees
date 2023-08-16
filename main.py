@@ -52,7 +52,7 @@ def main():
     
     mycursor.execute("SELECT * FROM events")
     events = mycursor.fetchall()
-    return render_template("home.html", entries=leaderboard_entries, events=events)
+    return render_template("home.html", entries=leaderboard_entries, events=events, events_len = len(events))
 
 @app.route('/about')
 def about():
