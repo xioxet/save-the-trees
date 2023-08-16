@@ -508,7 +508,27 @@ def admin_dashboard():
         flash('You do not have permission to access the admin dashboard.')
         return redirect(url_for('login'))
 
-
+@app.route('/ForgotPassword', methods=['GET', 'POST'])
+def ForgotPassword():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        user = find_email(email)
+        if user:
+            verification_token = token_urlsafe()
+            add_verification_token(verification_token, user[1], user[2], user[3])
+            send_email(email, "Password reset for Save The Trees",
+                       f"Password reset\nClick the following link to reset your password.\n127.0.0.1:5000/reset_password/{verification_token}")
+            flash("You have been sent a verification link in an email.")
+            return redirect(url_for('verification_token'))
+        else:
+            flash("Email not found.")
+            return redirect(url_for('ForgotPassword'))
+    else:
+        for error in form.errors.items():
+            flash(error[1])
+            return redirect(url_for('ForgotPassword'))
+    return render_template('ForgotPassword.html', form=form)
 @app.route('/delete_user', methods=['GET', 'POST'])
 def delete_user():
     if request.method == 'POST':
