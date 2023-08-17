@@ -291,10 +291,10 @@ def contact_reply(id):
         response = request.form["contact_response"]
         set_responded(id, response)
         flash("You have successfully responded to the message!")
-        # send_email(email,
-        #            f"Response from Save The Trees",
-        #            f"""Your contact submission: {message}:\nOur response: {response}
-        #             """)
+        send_email(email,
+                    f"Response from Save The Trees",
+                    f"""Your contact submission: {message}:\nOur response: {response}
+                     """)
         return redirect('/contact_view/false')
     return render_template('contact_response.html', message=message, email=email, name=name, form=form)
 
@@ -344,8 +344,8 @@ def login():
                         # The pin has expired, generate a new one and send it to the user's email
                         verification_pin = generate_verification_pin()
                         add_verification_pin(username, verification_pin)
-                        # send_email(email, "Login Verification for Save The Trees",
-                        #            f"Your 6-digit verification pin is: {verification_pin}")
+                        send_email(email, "Login Verification for Save The Trees",
+                                    f"Your 6-digit verification pin is: {verification_pin}")
                         print(verification_pin)
                         # Redirect the user to the verification page to enter the pin
                         flash(
@@ -409,8 +409,8 @@ def signup():
             salt = bcrypt.gensalt()
             password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
             add_verification_token(verification_token, username, password_hash, email)
-            # send_email(email, "Verification email for Save The Trees",
-            #            f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
+            send_email(email, "Verification email for Save The Trees",
+                        f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
             flash("You have been sent a verification link in an email.")
             return redirect(url_for('verification_token'))
     else:
@@ -469,6 +469,7 @@ def ChangeProfile():
         return redirect(url_for('login'))
 
     user_id = session['user_id']
+    print(user_id)
 
     if form.validate_on_submit():
 
@@ -479,8 +480,9 @@ def ChangeProfile():
         # Check if the username or email already exists in the database
         user = find_username(username)
         email_user = find_email(email)
+        print(user, email_user)
 
-        if (user and user['user_id'] != user_id) or (email_user and email_user['user_id'] != user_id):
+        if (user and user[0] != user_id) or (email_user and email_user[0] != user_id):
             flash("Username or email already taken.")
             return redirect(url_for('ChangeProfile'))
         else:
@@ -554,9 +556,9 @@ def DeleteAccount():
             verification_pin = generate_del_verification_pin()
             add_delete_verification_pin(verification_pin, username)
             print(verification_pin)
-            # send_email(email, "Delete account verification for Save The Trees",
-            #         f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/#del_verification/{verification_pin}")
-            flash("You have been sent a verification link in an email. Please verify your account to continue.")
+            send_email(email, "Delete account verification for Save The Trees",
+                     f"Deletion of account\nYour verification pin is {verification_pin}.")
+            flash("You have been sent a pin in your email.")
             return redirect(url_for('del_verification'))
         else:
             delete_user(session.get('user_id'))
@@ -588,6 +590,7 @@ def del_verification():
 @app.route('/logout')
 def logout():
     session.clear()
+    flash('Successfully logged out.')
     return redirect(url_for('main'))
 
 # Read operation - Display all events

@@ -93,7 +93,10 @@
   <br>
 
   <div class="leaderboard">
+    <div class="row">
     <h4 class="leaderboard-title">Recent donations</h4>
+    <a href="/leaderboard"><h4 class="leaderboard-title mx-2">View biggest donors</h4></a>
+    </div>
     {% for entry in entries %}
     <div class="entry">
       <h4>{{ entry['name'] }}</h4>
@@ -104,6 +107,7 @@
   </div>
 </div>
 {% if events_len > 0 %}
+<h1 class="m-auto" style="text-align:center;">Events</h1>
 <div class="carousel-container">
   <img class="event-image" src="{{url_for('static', filename='images/' + events[0][5])}}">
   <div class="mx-2 event-text-container">

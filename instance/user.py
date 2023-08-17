@@ -113,7 +113,7 @@ def verify_token(token):
     try:
         username, password, email, date = [row for row in mycursor][0]
     except:
-        raise Exception("Invalid verification.")
+        raise Exception("")
 
     date = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
     date_difference = datetime.datetime.now() - date
@@ -142,7 +142,7 @@ def verify_pin(verification_pin):
     try:
         username, is_verified, date = [row for row in mycursor][0]
     except:
-        raise Exception("Invalid verification.")
+        raise Exception("")
     print(username, date, is_verified)
     current_time = datetime.datetime.now()
     date_time = datetime.datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S")
