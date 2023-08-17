@@ -50,9 +50,9 @@
         const search_name = document.getElementById("search_name").value
         xhttp.open("POST", "rest/products", true);
         xhttp.addEventListener('load', (e) => {
+            document.getElementById("fail_message").innerText = ""
             console.log(xhttp.status);
             if (xhttp.status == 200) {
-                document.getElementById("results").innerText = xhttp.responseText;
                 console.log(JSON.parse(xhttp.responseText))
                 let results = JSON.parse(xhttp.responseText)["result"]
                 document.getElementById("results").innerHTML = ""
@@ -118,6 +118,7 @@
             }
             else if(xhttp.status == 413){
                 console.log("Too long!")
+                document.getElementById("fail_message").innerText = xhttp.responseText
             }
         });
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -129,14 +130,16 @@
 <form onsubmit="form_submit(event)">
     {{ form.csrf_token }}
     <h3>Products</h3>
+    <p>All profits will go towards our reforestation efforts!</p>
     <div class="form-group">
         <div class="row">
-            {{ form.search_name(class="col-sm-8 col-md-10 form-control", placeholder="Product Name", id="search_name") }}
+            {{ form.search_name(class="col-sm-8 col-md-10 form-control", placeholder="Search term", id="search_name") }}
 
             <input type="button" value="Submit" id="search_btn" onclick="search()" class="btn btn-primary"/>
         </div>
     </div>
 </form>
+<p id="fail_message" class="text-danger"></p>
 <div id="results"></div>
 
 </div>

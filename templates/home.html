@@ -106,7 +106,7 @@
     {% endfor %}
   </div>
 </div>
-<br><br><hr>
+{% if events_len > 0 %}
 <h1 class="m-auto" style="text-align:center;">Events</h1>
 <div class="carousel-container">
   <img class="event-image" src="{{url_for('static', filename='images/' + events[0][5])}}">
@@ -120,6 +120,7 @@
       </div>
   </div>
 </div>
+{% endif %}
 </body>
 
 <script>
