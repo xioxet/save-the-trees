@@ -64,6 +64,12 @@ def add_user(username, password, email):
     mycursor.execute(insert_user, user_params)
     mydb.commit()
 
+def change_password(password, email):
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    query = "UPDATE users SET password = %s WHERE email = %s"
+    mycursor.execute(query, (hashed_password, email))
+    mydb.commit()
+
 def delete_user_from_database(username):
     query = "DELETE FROM users WHERE username = %s"
     mycursor.execute(query, (str(username),))
