@@ -6,12 +6,12 @@ pass_verify = False
 if pass_verify:
     password = getpass("Database password:")
 else:
-    password = "password"
+    password = "MySql123!"
 while True:
     try:
         mydb = mysql.connector.connect(
             host='localhost',
-            user='stt_user',
+            user='root',
             password=password,
             port='3306',
             database='stt_db',
