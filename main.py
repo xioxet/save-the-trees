@@ -556,7 +556,7 @@ def ForgotPassword():
         email = form.email.data
         password = form.password.data
         if email:
-            change_password(email, password)
+            change_password(password, email)
             flash("Password changed successfully!")
             return redirect(url_for('login'))
         else:
