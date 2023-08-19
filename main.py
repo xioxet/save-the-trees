@@ -1,5 +1,3 @@
-import json
-
 from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
 from secrets import token_urlsafe
 from product_form import SearchForm
@@ -8,10 +6,10 @@ from flask_limiter.util import get_remote_address
 from payment import *
 from contact import *
 from login import *
-from events import *
 from product_form import SearchForm
-import os.path
-import mysql.connector
+#
+from secrets import token_urlsafe
+#
 from instance.contact import *
 from instance.orders import *
 import instance.products as product_server
@@ -25,8 +23,14 @@ from email_handler import *
 from roles import *
 import bcrypt
 from decimal import Decimal
-
+#
+from wtforms import StringField, IntegerField, TextAreaField, FileField
+from wtforms.validators import DataRequired, NumberRange, Length
+from wtforms import ValidationError
+from flask_wtf import FlaskForm
+import os
 from instance import mydb, mycursor
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = token_urlsafe()
@@ -37,9 +41,10 @@ limiter = Limiter(
     storage_uri="memory://",
 )
 
+current_directory = os.getcwd()
+
 @app.route('/')
 def main():
-    print('sdfsjdfklsdfj')
     leaderboard_entries = list()
     for order in most_recent_orders(5):
         firstname, lastname, quantity, message = order[2:6]
@@ -49,10 +54,9 @@ def main():
             'message': message
         }
         leaderboard_entries.append(entry)
-    
     mycursor.execute("SELECT * FROM events")
     events = mycursor.fetchall()
-    return render_template("home.html", entries=leaderboard_entries, events=events, events_len = len(events))
+    return render_template("home.html", entries=leaderboard_entries, events=events, events_len=len(events))
 
 @app.route('/about')
 def about():
@@ -142,10 +146,7 @@ def process_payment_trees():
 # almost identical to above function but Uhhhhhhhhhh
 @app.route('/cart_get', methods=['GET','POST'])
 def get_cart():
-    try:
-        session['cart'] = loads(request.json.get("cart"))
-    except json.JSONDecodeError:
-        return redirect("/merchandise")
+    session['cart'] = loads(request.json.get("cart"))
     cart_data = session['cart']
     stripe_price = 0
     for product in cart_data:
@@ -170,8 +171,6 @@ def process_checkout():
     except ValueError:  #
         return redirect('/oops')
     cart_data = session['cart']
-    purchase_status = None
-
     # calculate cost
     calc_price = 0
     for product in cart_data:
@@ -181,7 +180,6 @@ def process_checkout():
     if calc_price != Decimal(amount):
         return redirect("/oops")
     try:
-
         charge = stripe.Charge.create(
             amount=int(amount),
             currency='sgd',
@@ -189,14 +187,13 @@ def process_checkout():
             description='Payment for Flask App'
         )
         purchase_status = product_server.log_purchase(cart_data, calc_price, session['user_id'], 'test address')
-        print(purchase_status)  # returns purchase id
+        print(purchase_status)
         print(purchase_status == True)
         # commit the charge or whatever IDK
     
     except stripe.error.CardError as e:
-        if purchase_status:
-            product_server.undo_purchase(purchase_status)
         return render_template('payment_error.html', error_message=e)
+    
     else:
         if purchase_status:  # did not None or error message so executed successfully
             return render_template('payment_success.html', charge=charge, clear_cart=True)
@@ -291,10 +288,10 @@ def contact_reply(id):
         response = request.form["contact_response"]
         set_responded(id, response)
         flash("You have successfully responded to the message!")
-        send_email(email,
-                    f"Response from Save The Trees",
-                    f"""Your contact submission: {message}:\nOur response: {response}
-                     """)
+        send_email(email, 
+                   f"Response from Save The Trees", 
+                   f"""Your contact submission: {message}:\nOur response: {response}
+                    """)
         return redirect('/contact_view/false')
     return render_template('contact_response.html', message=message, email=email, name=name, form=form)
 
@@ -344,8 +341,8 @@ def login():
                         # The pin has expired, generate a new one and send it to the user's email
                         verification_pin = generate_verification_pin()
                         add_verification_pin(username, verification_pin)
-                        send_email(email, "Login Verification for Save The Trees",
-                                    f"Your 6-digit verification pin is: {verification_pin}")
+                        #send_email(email, "Login Verification for Save The Trees",
+                        #           f"Your 6-digit verification pin is: {verification_pin}")
                         print(verification_pin)
                         # Redirect the user to the verification page to enter the pin
                         flash(
@@ -410,7 +407,7 @@ def signup():
             password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
             add_verification_token(verification_token, username, password_hash, email)
             send_email(email, "Verification email for Save The Trees",
-                        f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
+                       f"Welcome to Save The Trees!\nClick the following link to verify your account.\n127.0.0.1:5000/signup_verification/{verification_token}")
             flash("You have been sent a verification link in an email.")
             return redirect(url_for('verification_token'))
     else:
@@ -439,6 +436,8 @@ def verification_token(token=None):
 def dashboard():
     print(session)  
     if 'username' in session and session['role'] == 'user':
+        mycursor.execute("SELECT * FROM events")
+        events = mycursor.fetchall()
         print('below is username')
         print(session['username'])
         email = find_username(session['username'])[3]
@@ -452,9 +451,9 @@ def dashboard():
                 "satisfied": order[-1],
             }
             order_formatted.append(new_order)
-        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_user.html', orders = order_formatted)
+        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_user.html', orders = order_formatted, events=events)
     elif 'username' in session and session['role'] == 'admin':
-        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html')
+        return render_template('dashboard.html', username=session['username'], navbar_template='navbar_admin.html',)
     else:
         flash('You do not have permission to access the user dashboard.')
         return redirect(url_for('login'))
@@ -469,7 +468,6 @@ def ChangeProfile():
         return redirect(url_for('login'))
 
     user_id = session['user_id']
-    print(user_id)
 
     if form.validate_on_submit():
 
@@ -480,9 +478,8 @@ def ChangeProfile():
         # Check if the username or email already exists in the database
         user = find_username(username)
         email_user = find_email(email)
-        print(user, email_user)
 
-        if (user and user[0] != user_id) or (email_user and email_user[0] != user_id):
+        if (user and user['user_id'] != user_id) or (email_user and email_user['user_id'] != user_id):
             flash("Username or email already taken.")
             return redirect(url_for('ChangeProfile'))
         else:
@@ -531,6 +528,7 @@ def ForgotPassword():
             flash(error[1])
             return redirect(url_for('ForgotPassword'))
     return render_template('ForgotPassword.html', form=form)
+
 @app.route('/delete_user', methods=['GET', 'POST'])
 def delete_user():
     if request.method == 'POST':
@@ -556,9 +554,9 @@ def DeleteAccount():
             verification_pin = generate_del_verification_pin()
             add_delete_verification_pin(verification_pin, username)
             print(verification_pin)
-            send_email(email, "Delete account verification for Save The Trees",
-                     f"Deletion of account\nYour verification pin is {verification_pin}.")
-            flash("You have been sent a pin in your email.")
+            # send_email(email, "Delete account verification for Save The Trees",
+            #         f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/#del_verification/{verification_pin}")
+            flash("You have been sent a verification link in an email. Please verify your account to continue.")
             return redirect(url_for('del_verification'))
         else:
             delete_user(session.get('user_id'))
@@ -590,12 +588,12 @@ def del_verification():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('Successfully logged out.')
     return redirect(url_for('main'))
 
-# Read operation - Display all events
-@role_required('admin')
+
+#joef
 @app.route('/events')
+@role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def events():
     mycursor.execute("SELECT * FROM events")
     events = mycursor.fetchall()
@@ -603,28 +601,27 @@ def events():
     return render_template('events.html', events=events)
 
 
-# Read operation - Display all events
 @app.route('/completed_events')
+@role_required('user', fail_redirect="login", flash_message="Please log in.")
 def c_events():
     mycursor.execute("SELECT * FROM events WHERE completed = 1;")
     events = mycursor.fetchall()
     print(events)
     return render_template('completed_events.html', events=events)
 
-# Create operation - Add a new event
-@role_required('admin')
+
 @app.route('/event_add', methods=['GET', 'POST'])
+@role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def event_add():
     if request.method == 'POST':
         title = request.form['title']
         date = request.form['date']
         description = request.form['description']
-        # Check if the 'completed' key exists in the form data
 
         if 'completed' in request.form:
-            completed = int(request.form['completed'])  # Convert the value to an integer
+            completed = int(request.form['completed'])
         else:
-            completed = 0  # Default value if 'completed' key is not present
+            completed = 0
 
         print(title, date, description)
         mycursor.execute("INSERT INTO events (title, date, description, completed) VALUES (%s, %s, %s, %s)", (title, date, description, completed))
@@ -633,9 +630,9 @@ def event_add():
     else:
         return render_template('event_add.html')
 
-# Update operation - Edit an event
-@role_required('admin')
+
 @app.route('/event_edit/<int:event_id>', methods=['GET', 'POST'])
+@role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def event_edit(event_id):
     mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
     event = mycursor.fetchone()
@@ -646,11 +643,10 @@ def event_edit(event_id):
             date = request.form['date']
             description = request.form['description']
 
-            # Check if the 'completed' key exists in the form data
             if 'completed' in request.form:
-                completed = 1  # Set completed to 1 if the checkbox is checked
+                completed = 1
             else:
-                completed = 0  # Set completed to 0 if the checkbox is not checked
+                completed = 0
 
             mycursor.execute("UPDATE events SET title = %s, date = %s, description = %s, completed = %s WHERE id = %s", (title, date, description, completed, event_id))
             mydb.commit()
@@ -660,32 +656,32 @@ def event_edit(event_id):
     else:
         return 'Event not found', 404
 
-# Delete operation - Remove an event
-@role_required('admin')
+
 @app.route('/event_delete/<int:event_id>', methods=['POST'])
+@role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def delete(event_id):
     mycursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
     mydb.commit()
     return redirect('/events')
 
+
 def is_user_registered(event_id, username):
-    try:
         mycursor.execute("SELECT COUNT(*) FROM event_registrations WHERE event_id = %s AND username = %s", (event_id, username))
         count = mycursor.fetchone()[0]
         return count > 0
-    
-    except mysql.connector.Error as err:
-        print(f"Error checking user registration: {err}")
-        return False
+
 
 def register_user_for_event(event_id, username):
         mycursor.execute("INSERT INTO event_registrations (event_id, username) VALUES (%s, %s)", (event_id, username))
         mydb.commit()
         flash("Registration successful!", "success")
 
-@role_required('user', 'login', 'Please log in.')
+
 @app.route('/event_register/<int:event_id>', methods=['GET', 'POST'])
+@role_required('user', fail_redirect="login", flash_message="Please log in.")
 def event_register(event_id):
+
+
     mycursor.execute("SELECT * FROM events WHERE id = %s", (event_id,))
     event = mycursor.fetchone()
 
@@ -694,14 +690,12 @@ def event_register(event_id):
 
     if request.method == 'POST':
         username = get_username()
-        email = find_email(username)
+        email = get_user_email(username)
 
-    # Check if the user is already registered for the event
         if is_user_registered(event_id, username):
             flash('You are already registered for this event.')
             return redirect(url_for('dashboard'))
 
-    # Register the user for the event
         register_user_for_event(event_id, username)
         flash('You have successfully registered for the event.')
         send_email(email, 'Successfully Registered for Event', 'You have successfully registered for the event.')
@@ -709,29 +703,39 @@ def event_register(event_id):
 
     return render_template('event_register.html', event=event)
 
-
 @app.route('/user_events')
+@role_required('user', fail_redirect="login", flash_message="Please log in.")
 def user_events():
     mycursor.execute("SELECT * FROM events")
     events = mycursor.fetchall()
     print(events)
     return render_template('eventsuser.html', events=events)
 
-@role_required('user')
+
+def is_jpeg(form, field):
+    if field.data:
+        if not field.data.filename.lower().endswith(('.jpg', '.jpeg')):
+            raise ValidationError('Image must be in JPEG format')
+
+
+class ReviewForm(FlaskForm):
+    rating = SelectField( choices=[(1,1), (2,2), (3, 3), (4, 4), (5,5)], validators=[DataRequired()])
+    comment = TextAreaField('Comment', validators=[DataRequired(), Length(min=1, max=500)])
+    image = FileField('Image', validators=[is_jpeg])
+
+
 @app.route('/event_review/<int:event_id>', methods=['GET', 'POST'])
 def event_review(event_id):
     form = ReviewForm()
     if form.validate_on_submit():
-        username = get_username()
+        username = session['username']
         rating = form.rating.data
         comment = form.comment.data
         image = None
 
-        # Upload image and get its path or link
         if form.image.data:
-            image = save_uploaded_image(form.image.data)  # Implement this function to save the uploaded image and return its path or link
+            image = save_uploaded_image(form.image.data)
 
-        # Save the review to the database
         mycursor.execute("INSERT INTO reviews (event_id, username, rating, comment, image) VALUES (%s, %s, %s, %s, %s)", (event_id, username, rating, comment, image))
         mydb.commit()
 
@@ -740,30 +744,19 @@ def event_review(event_id):
     return render_template('event_review.html', form=form, event_id=event_id)
 
 def add_review(event_id, username, rating, comment, image):
-    try:
-        # Insert the review data into the reviews table
         insert_review_query = "INSERT INTO reviews (event_id, username, rating, comment, image) VALUES (%s, %s, %s, %s, %s)"
         mycursor.execute(insert_review_query, (event_id, username, rating, comment, image))
 
-        # Commit the changes to the database
         mydb.commit()
 
-        # Close the cursor (do not close the connection as it's reused)
 
-    except mysql.connector.Error as e:
-        print(f"Error adding review: {e}")
-        raise
 
 def get_event_reviews(event_id):
     try:
-        # Get the existing database connection
-
-        # Query the reviews table for reviews of the specified event_id
         select_reviews_query = "SELECT * FROM reviews WHERE event_id = %s"
         mycursor.execute(select_reviews_query, (event_id,))
         reviews = []
 
-        # Fetch the review data and store it in a list of dictionaries
         for review in mycursor.fetchall():
             review_data = {
                 "id": review[0],
@@ -775,34 +768,33 @@ def get_event_reviews(event_id):
             }
             reviews.append(review_data)
 
-        # Close the cursor (do not close the connection as it's reused)
+
 
         return reviews
 
-    except mysql.connector.Error as e:
+    except mydb.connector.Error as e:
         print(f"Error retrieving event reviews: {e}")
         raise
 
 def save_uploaded_image(image_data):
     try:
-        image_folder = os.getcwd() + "\\static\\images"
-        print(image_folder)
-        # Generate a unique filename for the image to avoid overwriting existing images
-        # You can use the UUID library to generate a unique filename
+        image_folder = f"{current_directory}\\static\\images"
+
+
         import uuid
         filename = f"{uuid.uuid4().hex}.jpg"
 
-        # Save the image to the specified folder
         image_path = os.path.join(image_folder, filename)
+        print(image_path)
         image_data.save(image_path)
 
-        # Close the cursor (do not close the connection as it's reused)
 
         return image_path
 
     except Exception as e:
         print(f"Error saving uploaded image: {e}")
         raise
+
 
 
 @app.route("/products")
@@ -814,26 +806,12 @@ def products():
 def prod_search_api():
     if request.method != "POST":
         return redirect("/products")
-    request_size = int(request.headers.get("Content-Length"))
-    if request_size is None:
-        return "", 411
-    if request_size > 8192:
-        return "", 413
-    search_name = request.form.get("search_name")
-    if len(search_name) > 45:
-        return "None of our products have names with this many characters!", 413
-    result_name = product_server.search_product([1, search_name], ["onsale", "prod_name"])
-    result_descripion = product_server.search_product([1, search_name], ["onsale", "description"])
+    print(request.form)
+    result = product_server.search_product(["*"])
+    print(result)
     results = []
-    for product in result_name:
-        for i in range(len(result_descripion)):
-            if result_descripion[i][0] == product[0]:  # same product was searched up twice
-                result_descripion.pop(i)
-                break  # shouldn't have come up more than once in the same list, prod_id is unique
-        if product[4] > 0:
-            results.append((product[0], product[1], float(product[2]), product[3], product[4]))
-    for product in result_descripion:
-        if product[4] > 0:
+    for product in result:
+        if request.form["search_name"] in product[1]:
             results.append((product[0], product[1], float(product[2]), product[3], product[4]))
     return dumps({"result": results})  # product ID, name, unit_price, description, stock
 
@@ -842,3 +820,4 @@ print(check_role('qqq'))
 
 if __name__ == '__main__':
     app.run(debug=True)
+
