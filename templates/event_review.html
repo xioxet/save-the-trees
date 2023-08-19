@@ -1,32 +1,36 @@
-{% extends "base.html" %}
+{% extends "form_base.html" %}
 
-{% block content %}
-  <h1>Leave a Review for Event</h1>
-  <h3>Event ID: {{ event_id }}</h3>
+{% block form %}
+    <form method="POST" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+      <h1>Review ◐</h1>
 
-  <form method="POST" enctype="multipart/form-data">
-    {{ form.hidden_tag() }}
-    <div class="form-group">
-      {{ form.rating.label }}
-      {{ form.rating(class="form-control") }}
-      {% for error in form.rating.errors %}
-        <div class="invalid-feedback">{{ error }}</div>
-      {% endfor %}
-    </div>
-    <div class="form-group">
-      {{ form.comment.label }}
-      {{ form.comment(class="form-control") }}
-      {% for error in form.comment.errors %}
-        <div class="invalid-feedback">{{ error }}</div>
-      {% endfor %}
-    </div>
-    <div class="form-group">
-      {{ form.image.label }}
-      {{ form.image(class="form-control-file") }}
-      {% for error in form.image.errors %}
-        <div class="invalid-feedback">{{ error }}</div>
-      {% endfor %}
-    </div>
-    <button type="submit" class="btn btn-primary">Submit Review</button>
-  </form>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <br><br>
+        <div class="alert alert-dark w-25 m-auto dismissible" onclick="dismiss(this)">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+
+      <div class='row-sm-3'>
+        <label>Rating</label>
+        {{form.rating(class="form-control")}}
+      </div>
+      
+      <div class="form-group">
+        <label>Comment</label>
+        {{form.comment (class="form-control")}}
+      </div>
+    
+      <div class="form-group">
+        <label>Image</label>
+        {{form.image(class='form-control-file')}}
+      </div>
+
+      {{form.submit}}
+    </form>
 {% endblock %}

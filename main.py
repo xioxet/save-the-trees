@@ -722,9 +722,11 @@ class ReviewForm(FlaskForm):
     rating = SelectField( choices=[(1,1), (2,2), (3, 3), (4, 4), (5,5)], validators=[DataRequired()])
     comment = TextAreaField('Comment', validators=[DataRequired(), Length(min=1, max=500)])
     image = FileField('Image', validators=[is_jpeg])
+    submit = SubmitField()
 
 
 @app.route('/event_review/<int:event_id>', methods=['GET', 'POST'])
+@role_required('user')
 def event_review(event_id):
     form = ReviewForm()
     if form.validate_on_submit():
@@ -741,6 +743,10 @@ def event_review(event_id):
 
         flash('Review submitted successfully!')
         return redirect(url_for('dashboard'))
+    else:
+        errors = form.errors
+        for field, field_errors in errors.items():
+            flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
     return render_template('event_review.html', form=form, event_id=event_id)
 
 def add_review(event_id, username, rating, comment, image):
