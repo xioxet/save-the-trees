@@ -38,6 +38,7 @@ def get_user_id(username):
     user_id = mycursor.fetchone()
     return user_id
 
+
 def find_user_verify(username):
     query = "SELECT user_id, password, email, is_verified, role FROM users WHERE username = %s"
     mycursor.execute(query, (username,))
@@ -185,4 +186,26 @@ def verify_del_pin(delete_verification_pin):
     else:
         raise Exception("Invalid verification pin.")
 
+def add_forget_verification_pin(email, forget_verification_pin):
+    print(email, forget_verification_pin)
+    query = "UPDATE users SET forget_verification_pin = %s WHERE email = %s"
+    mycursor.execute(query, (forget_verification_pin, email))
+    print("verification pin added")
+    mydb.commit()
+
+def verify_forg_pin(forget_verification_pin):
+    query = "SELECT email FROM users WHERE forget_verification_pin = %s"
+    mycursor.execute(query, (forget_verification_pin,))
+    result = mycursor.fetchone()
+
+    if result:
+        email = result[0]
+        # Now that the user's delete verification pin is verified, delete the verification_pin
+        delete_query = "UPDATE users SET forget_verification_pin = '' WHERE email = %s"
+        mycursor.execute(delete_query, (email,))
+        mydb.commit()
+
+        return True
+    else:
+        raise Exception("Invalid verification pin.")
 

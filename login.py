@@ -19,7 +19,7 @@ class RegisterForm(FlaskForm):
 
 class ProfileForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email(message="Invalid email address")])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField("Update")
     back = SubmitField("Back")
@@ -37,8 +37,17 @@ class DelVerification(FlaskForm):
     delete = SubmitField('Delete Account')
 
 class ForgotPasswordForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email(message="Invalid email address")])
     password = PasswordField('New Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
+    submit = SubmitField('Submit')
+
+class ForgVerificationForm(FlaskForm):
+    forg_verification_pin = StringField('Verification Code', validators=[DataRequired()])
+    submit = SubmitField('Verify')
+
+class ReqEmailForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email(message="Invalid email address")])
     submit = SubmitField('Submit')
 
 
@@ -62,3 +71,4 @@ class User:
 
     def get_password(self):
         return self.password
+

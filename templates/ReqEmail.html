@@ -1,0 +1,23 @@
+{% extends "form_base.html" %}
+{% block form %}
+    <form method="POST" action="">
+      {{ form.csrf_token }}
+      <h1>Enter your email ◐</h1>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-danger m-auto">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+      <div class='form-group'>
+        <label>Email</label>
+        {{ form.email(class="form-control", placeholder="Enter email") }}
+      </div>
+        <br>
+        <a href="{{ url_for('login') }}" class="btn btn-danger">Go Back</a>
+      {{ form.submit(class="btn btn-success") }}
+    </form>
+{% endblock %}

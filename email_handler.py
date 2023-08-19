@@ -11,6 +11,12 @@ import time
 sender_email = 'savethetrees.auto@gmail.com'
 sender_password = 'tvlrsnkvrazbtmcy'
 
+def generate_forg_verification_pin():
+    forg_verification_pin = str(random.randint(100000, 999999))
+    session['forg_verification_pin'] = {
+        'pin': forg_verification_pin
+    }
+    return forg_verification_pin
 
 def generate_del_verification_pin():
     del_verification_pin = str(random.randint(100000, 999999))
