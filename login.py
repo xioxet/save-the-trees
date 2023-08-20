@@ -21,6 +21,7 @@ class ProfileForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email(message="Invalid email address")])
     password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField("Update")
     back = SubmitField("Back")
 

@@ -479,7 +479,8 @@ def ChangeProfile():
         user = find_username(username)
         email_user = find_email(email)
 
-        if (user and user['user_id'] != user_id) or (email_user and email_user['user_id'] != user_id):
+
+        if (user and user[(0)] != user_id) or (email_user and email_user[(3)] != user_id):
             flash("Username or email already taken.")
             return redirect(url_for('ChangeProfile'))
         else:
@@ -497,15 +498,19 @@ def ChangeProfile():
                 flash(f"Error in field '{field}': {error}")
     return render_template('ChangeProfile.html', form=form)
 
+
 @app.route('/admin_dashboard', endpoint='admin_dashboard')
 # @fresh_login_required(timeout_minutes=5)
 @role_required('admin', fail_redirect="login", flash_message="Please log in.")
 def admin_dashboard():
     if 'username' in session and session['role'] == 'admin':
-        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_admin.html', user_count = get_user_count(), order_count = get_order_count(), contact_count = get_contact_count())
+        return render_template('admindashboard.html', username=session['username'], navbar_template='navbar_admin.html',
+                               user_count=get_user_count(), order_count=get_order_count(),
+                               contact_count=get_contact_count())
     else:
         flash('You do not have permission to access the admin dashboard.')
         return redirect(url_for('login'))
+
 
 @app.route('/ReqEmail', methods=['GET', 'POST'])
 def ReqEmail():
@@ -534,6 +539,7 @@ def ReqEmail():
             flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
         return render_template('ReqEmail.html', form=form)
 
+
 @app.route('/forg_verification', methods=['GET', 'POST'])
 def forg_verification():
     form = ForgVerificationForm()
@@ -548,6 +554,7 @@ def forg_verification():
             print(e)
             return redirect(url_for('forg_verification'))
     return render_template('forg_verification.html', form=form)
+
 
 @app.route('/ForgotPassword', methods=['GET', 'POST'])
 def ForgotPassword():
@@ -564,16 +571,6 @@ def ForgotPassword():
             return redirect(url_for('ForgotPassword'))
     return render_template('ForgotPassword.html', form=form)
 
-@app.route('/delete_user', methods=['GET', 'POST'])
-def delete_user():
-    if request.method == 'POST':
-        user_id_to_delete = session.get('user_id')
-        delete_user(user_id_to_delete)
-        session.clear()
-        return redirect(url_for('main'))
-
-    return render_template('DeleteAccount.html')
-
 @app.route('/DeleteAccount', methods=['GET', 'POST'])
 def DeleteAccount():
     form = DeleteForm()
@@ -587,25 +584,25 @@ def DeleteAccount():
                 flash("The provided email does not exist in the database.")
                 return render_template('DeleteAccount.html', form=form)
             verification_pin = generate_del_verification_pin()
-            add_delete_verification_pin(verification_pin, username)
             print(verification_pin)
-            # send_email(email, "Delete account verification for Save The Trees",
-            #         f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/#del_verification/{verification_pin}")
+            add_delete_verification_pin(username, verification_pin)
+            send_email(email, "Delete account verification for Save The Trees",
+                    f"Deletion of account\nHere is you verification pin\n127.0.0.1:5000/#del_verification/{verification_pin}")
             flash("You have been sent a verification link in an email. Please verify your account to continue.")
             return redirect(url_for('del_verification'))
         else:
-            delete_user(session.get('user_id'))
-            flash("Account deleted successfully.")
-            return redirect(url_for('main'))
+            flash("Error")
+            return redirect(url_for('DeleteAccount'))
     else:
         errors = form.errors
         for field, field_errors in errors.items():
             flash(f"Validation error in field '{field}': {', '.join(field_errors)}", "error")
         return render_template('DeleteAccount.html', form=form)
 
+
 @app.route('/del_verification', methods=['GET', 'POST'])
 def del_verification():
-    form = DelVerification()
+    form = DelVerificationForm()
     if form.validate_on_submit():
         verification_pin = form.del_verification_pin.data
         try:
@@ -619,6 +616,7 @@ def del_verification():
             print(e)
             return redirect(url_for('del_verification'))
     return render_template('del_verification.html', form=form)
+
 
 @app.route('/logout')
 def logout():

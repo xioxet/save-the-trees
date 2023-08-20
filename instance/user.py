@@ -170,21 +170,21 @@ def verify_pin(verification_pin):
 
 
 #delete verification
-def add_delete_verification_pin(username, delete_verification_pin):
-    print(username, delete_verification_pin)
+def add_delete_verification_pin(username, del_verification_pin):
+    print(username, del_verification_pin)
     query = "UPDATE users SET del_verification_pin = %s WHERE username = %s"
-    mycursor.execute(query, (username, delete_verification_pin))
+    mycursor.execute(query, (username, del_verification_pin))
     mydb.commit()
 
-def verify_del_pin(delete_verification_pin):
+def verify_del_pin(del_verification_pin):
     query = "SELECT username FROM users WHERE del_verification_pin = %s"
-    mycursor.execute(query, (delete_verification_pin,))
+    mycursor.execute(query, (del_verification_pin,))
     result = mycursor.fetchone()
 
     if result:
         username = result[0]
         # Now that the user's delete verification pin is verified, delete the verification_pin
-        delete_query = "UPDATE users SET verification_pin = '' WHERE username = %s"
+        delete_query = "UPDATE users SET del_verification_pin = '' WHERE username = %s"
         mycursor.execute(delete_query, (username,))
         mydb.commit()
 
